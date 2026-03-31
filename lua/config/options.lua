@@ -23,15 +23,15 @@ o.undofile = true
 -- Disable backups
 o.backup = false
 o.writebackup = false
--- Improved search 
+-- Improved search
 o.ignorecase = true
 o.smartcase = true
 o.hlsearch = false
 -- Substitution preview
 o.inccommand = "split"
--- Code folding 
+-- Code folding
 o.foldmethod = "indent"
-o.foldlevel = 4 
+o.foldlevel = 4
 -- Better indentation
 o.autoindent = true
 o.copyindent = true
@@ -63,7 +63,7 @@ a.nvim_create_autocmd("TextYankPost", {
     group = highlight_group,
     pattern = "*",
 })
--- Disabling unused plugins 
+-- Disabling unused plugins
 for _, plugin in pairs({
     "netrwFileHandlers",
     "2html_plugin",
@@ -72,4 +72,3 @@ for _, plugin in pairs({
 }) do
     vim.g["loaded_" .. plugin] = 1
 end
-
