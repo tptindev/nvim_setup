@@ -16,7 +16,7 @@ return {
                 "--background-index",
                 "--clang-tidy",
                 "--completion-style=detailed",
-                "--function-arg-placeholders",
+                "--function-arg-placeholders=1",
             },
             root_markers = {
                 "CMakePresets.json",

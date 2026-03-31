@@ -7,12 +7,24 @@ end
 local function cmake(command, fallback)
     return function()
         if vim.fn.exists(":" .. command) > 0 then
-            vim.cmd(command)
-            return
+            local ok, err = pcall(vim.cmd, command)
+            if ok then
+                return
+            end
+
+            if not fallback then
+                vim.notify(err, vim.log.levels.ERROR)
+                return
+            end
         end
 
         if fallback and vim.fn.exists(":" .. fallback) > 0 then
-            vim.cmd(fallback)
+            local ok, err = pcall(vim.cmd, fallback)
+            if ok then
+                return
+            end
+
+            vim.notify(err, vim.log.levels.ERROR)
             return
         end
 
