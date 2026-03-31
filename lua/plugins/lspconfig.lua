@@ -6,37 +6,28 @@ return {
         "mason-lspconfig.nvim",
     },
     config = function()
-        local lspconfig = require("lspconfig")
         local mason_lspconfig = require("mason-lspconfig")
+        local capabilities = require("blink.cmp").get_lsp_capabilities()
 
-        -- Setup mason-lspconfig to auto-install and configure LSP servers
-        mason_lspconfig.setup({
-            ensure_installed = { "clangd", "lua_ls" },
-            automatic_installation = true,
+        vim.lsp.config("clangd", {
+            capabilities = capabilities,
         })
 
-        -- Setup handlers for LSP servers
-        mason_lspconfig.setup_handlers({
-            function(server_name)
-                lspconfig[server_name].setup({})
-            end,
-            ["clangd"] = function()
-                lspconfig.clangd.setup({
-                    capabilities = require("blink.cmp").get_lsp_capabilities(),
-                })
-            end,
-            ["lua_ls"] = function()
-                lspconfig.lua_ls.setup({
-                    capabilities = require("blink.cmp").get_lsp_capabilities(),
-                    settings = {
-                        Lua = {
-                            diagnostics = {
-                                globals = { "vim" },
-                            },
-                        },
+        vim.lsp.config("lua_ls", {
+            capabilities = capabilities,
+            settings = {
+                Lua = {
+                    diagnostics = {
+                        globals = { "vim" },
                     },
-                })
-            end,
+                },
+            },
+        })
+
+        -- mason-lspconfig v2 installs and auto-enables configured servers.
+        mason_lspconfig.setup({
+            ensure_installed = { "clangd", "lua_ls" },
+            automatic_enable = true,
         })
     end,
 }
