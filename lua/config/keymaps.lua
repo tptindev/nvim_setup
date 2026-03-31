@@ -3,6 +3,23 @@ local function fzf(picker, opts)
         require("fzf-lua")[picker](opts or {})
     end
 end
+
+local function cmake(command, fallback)
+    return function()
+        if vim.fn.exists(":" .. command) > 0 then
+            vim.cmd(command)
+            return
+        end
+
+        if fallback and vim.fn.exists(":" .. fallback) > 0 then
+            vim.cmd(fallback)
+            return
+        end
+
+        vim.notify("CMake command is not available: " .. command, vim.log.levels.WARN)
+    end
+end
+
 local map = vim.keymap.set
 -- Move by screenlines instead of actual lines when using up/down keys in normal and visual mode, and when using up/down keys in insert mode
 map({ "n", "v" }, "<Up>", "gk", { desc = "Move up a screenline" })
@@ -40,6 +57,13 @@ map("n", "<leader>gs", fzf("git_status"), { desc = "Git status" })
 map("n", "<leader>gc", fzf("git_commits"), { desc = "Git commits" })
 map("n", "<leader>gb", fzf("git_branches"), { desc = "Git branches" })
 map("n", "<leader>gh", fzf("git_bcommits"), { desc = "Git file history" })
+
+map("n", "<leader>cc", cmake("CMakeGenerate"), { desc = "CMake configure" })
+map("n", "<leader>cb", cmake("CMakeBuild"), { desc = "CMake build" })
+map("n", "<leader>cr", cmake("CMakeRun"), { desc = "CMake run" })
+map("n", "<leader>ct", cmake("CMakeSelectBuildTarget"), { desc = "CMake build target" })
+map("n", "<leader>cs", cmake("CMakeSelectLaunchTarget"), { desc = "CMake launch target" })
+map("n", "<leader>cp", cmake("CMakeSelectConfigurePreset", "CMakeSelectKit"), { desc = "CMake preset or kit" })
 
 map("n", "<Leader>;", function()
     require("dropbar.api").pick()

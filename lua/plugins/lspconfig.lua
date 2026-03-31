@@ -11,6 +11,22 @@ return {
 
         vim.lsp.config("clangd", {
             capabilities = capabilities,
+            cmd = {
+                "clangd",
+                "--background-index",
+                "--clang-tidy",
+                "--completion-style=detailed",
+                "--function-arg-placeholders",
+            },
+            root_markers = {
+                "CMakePresets.json",
+                "CMakeLists.txt",
+                "compile_commands.json",
+                "compile_flags.txt",
+                ".clangd",
+                ".clang-tidy",
+                ".git",
+            },
         })
 
         vim.lsp.config("lua_ls", {
