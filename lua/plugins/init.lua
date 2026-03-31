@@ -6,4 +6,5 @@ return {
     require("plugins.treesitter_ctx"),
     require("plugins.mason"),
     require("plugins.dropbar"),
+    require("plugins.render_md"),
 }
