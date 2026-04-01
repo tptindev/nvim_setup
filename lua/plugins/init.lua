@@ -9,5 +9,7 @@ return {
     require("plugins.lspconfig"),
     require("plugins.cmake"),
     require("plugins.dropbar"),
+    require("plugins.neo-tree"),
     require("plugins.render_md"),
+    require("plugins.dashboard"),
 }
