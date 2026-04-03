@@ -160,6 +160,7 @@ Only useful when an LSP server is attached to the current buffer.
 | `n`  | `<leader>fo` | Find old files    |
 | `n`  | `<leader>fh` | Search help tags  |
 | `n`  | `<leader>fk` | Find keymaps      |
+| `n`  | `<leader>fc` | Open cheatsheet   |
 
 ### Git
 
@@ -261,6 +262,7 @@ Configured in `lua/plugins/mini.lua`.
 - `<leader>bd` currently runs `:bdelete`.
 - `<leader>e` toggles `neo-tree`, and the sidebar also opens automatically on startup outside the dashboard.
 - FZF mappings call `fzf-lua`.
+- Use `<leader>fc` to open this cheatsheet directly.
 - Use `<leader>fk` to search keymaps from inside Neovim instead of opening this cheatsheet.
 - `which-key.nvim` also shows key hints automatically when you pause after pressing `<leader>`.
 - Use `<leader>?` when you want a focused popup of buffer-local mappings.
