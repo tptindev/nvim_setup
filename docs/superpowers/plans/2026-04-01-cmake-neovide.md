@@ -13,6 +13,7 @@
 ### Task 1: Prepare isolated feature workspace
 
 **Files:**
+
 - Modify: `.gitignore`
 - Create: `.worktrees/cmake-neovide/`
 
@@ -24,6 +25,7 @@
 ### Task 2: Add CMake workflow plugin
 
 **Files:**
+
 - Create: `lua/plugins/cmake.lua`
 - Modify: `lua/plugins/init.lua`
 
@@ -35,6 +37,7 @@
 ### Task 3: Add CMake editor keymaps
 
 **Files:**
+
 - Modify: `lua/config/keymaps.lua`
 
 - [ ] Add user-facing keymaps for CMake configure, build, run, target selection, and configure preset or kit selection.
@@ -44,6 +47,7 @@
 ### Task 4: Tune clangd for CMake projects
 
 **Files:**
+
 - Modify: `lua/plugins/lspconfig.lua`
 
 - [ ] Keep the current Mason + `vim.lsp.config` structure intact.
@@ -53,6 +57,7 @@
 ### Task 5: Verify the configuration
 
 **Files:**
+
 - Verify: `lua/plugins/cmake.lua`
 - Verify: `lua/plugins/init.lua`
 - Verify: `lua/config/keymaps.lua`

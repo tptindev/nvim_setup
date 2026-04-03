@@ -1,6 +1,7 @@
 local o = vim.o
 local a = vim.api
-vim.opt.fileformats = { "dos", "unix" }
+vim.opt.fileformats = { "unix", "dos" }
+vim.opt.fileformat = "unix"
 -- Cursor visibility
 o.cursorline = true
 o.cursorlineopt = "screenline"

@@ -62,27 +62,27 @@ Create `lua/plugins/fzf.lua` with:
 Add a cohesive `fzf-lua` mapping set in `lua/config/keymaps.lua` that avoids existing `dropbar` mappings:
 
 - Project navigation:
-  - `<leader>ff` files
-  - `<leader>fg` live grep
-  - `<leader>fw` grep current word
-  - `<leader>fb` buffers
-  - `<leader>fo` oldfiles
-  - `<leader>fh` help tags
+    - `<leader>ff` files
+    - `<leader>fg` live grep
+    - `<leader>fw` grep current word
+    - `<leader>fb` buffers
+    - `<leader>fo` oldfiles
+    - `<leader>fh` help tags
 - LSP:
-  - `<leader>ld` definitions
-  - `<leader>lr` references
-  - `<leader>li` implementations
-  - `<leader>lt` typedefs
-  - `<leader>ls` document symbols
-  - `<leader>lS` workspace symbols
-  - `<leader>lx` diagnostics
-  - `<leader>lq` quickfix
+    - `<leader>ld` definitions
+    - `<leader>lr` references
+    - `<leader>li` implementations
+    - `<leader>lt` typedefs
+    - `<leader>ls` document symbols
+    - `<leader>lS` workspace symbols
+    - `<leader>lx` diagnostics
+    - `<leader>lq` quickfix
 - Git:
-  - `<leader>gf` git files
-  - `<leader>gs` git status
-  - `<leader>gc` git commits
-  - `<leader>gb` git branches
-  - `<leader>gh` file history
+    - `<leader>gf` git files
+    - `<leader>gs` git status
+    - `<leader>gc` git commits
+    - `<leader>gb` git branches
+    - `<leader>gh` file history
 
 ## Behavior Details
 
@@ -103,9 +103,9 @@ After implementation:
 
 1. Start Neovim and confirm the config loads without startup errors
 2. Trigger the primary project mappings:
-   - `<leader>ff`
-   - `<leader>fg`
-   - `<leader>fb`
+    - `<leader>ff`
+    - `<leader>fg`
+    - `<leader>fb`
 3. Open a file with LSP attached and verify at least `definitions`, `references`, and `document symbols`
 4. Open a Git repository and verify at least `git files`, `git status`, and `git commits`
 

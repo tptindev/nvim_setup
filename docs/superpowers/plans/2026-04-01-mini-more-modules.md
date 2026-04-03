@@ -13,6 +13,7 @@
 ### Task 1: Expand the mini.nvim suite config
 
 **Files:**
+
 - Modify: `lua/plugins/mini.lua`
 
 - [ ] Add `mini.move` with default `Alt-h/j/k/l` mappings.
@@ -23,6 +24,7 @@
 ### Task 2: Verify config
 
 **Files:**
+
 - Verify: `lua/plugins/mini.lua`
 
 - [ ] Run a headless syntax/load check for the updated plugin config file.

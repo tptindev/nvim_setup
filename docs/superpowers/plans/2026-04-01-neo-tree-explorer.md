@@ -13,6 +13,7 @@
 ### Task 1: Register Neo-tree
 
 **Files:**
+
 - Create: `docs/superpowers/plans/2026-04-01-neo-tree-explorer.md`
 - Create: `lua/plugins/neo-tree.lua`
 - Modify: `lua/plugins/init.lua`
@@ -23,6 +24,7 @@
 ### Task 2: Connect dashboard project opening
 
 **Files:**
+
 - Modify: `lua/plugins/dashboard.lua`
 
 - [ ] Update the project picker action so selecting a folder changes the local cwd.
@@ -31,6 +33,7 @@
 ### Task 3: Verify configuration
 
 **Files:**
+
 - Verify: `lua/plugins/neo-tree.lua`
 - Verify: `lua/plugins/init.lua`
 - Verify: `lua/plugins/dashboard.lua`
