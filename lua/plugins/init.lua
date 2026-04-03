@@ -12,4 +12,6 @@ return {
     require("plugins.neo-tree"),
     require("plugins.render_md"),
     require("plugins.dashboard"),
+    require("plugins.toggleterm"),
+    require("plugins.which-key"),
 }

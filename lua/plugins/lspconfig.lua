@@ -40,9 +40,13 @@ return {
             },
         })
 
+        vim.lsp.config("glsl_analyzer", {
+            capabilities = capabilities,
+        })
+
         -- mason-lspconfig v2 installs and auto-enables configured servers.
         mason_lspconfig.setup({
-            ensure_installed = { "clangd", "lua_ls" },
+            ensure_installed = { "clangd", "lua_ls", "glsl_analyzer" },
             automatic_enable = true,
         })
     end,

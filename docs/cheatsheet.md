@@ -101,6 +101,7 @@ Only useful when an LSP server is attached to the current buffer.
 | `n` | `<leader>fb` | Find buffers |
 | `n` | `<leader>fo` | Find old files |
 | `n` | `<leader>fh` | Search help tags |
+| `n` | `<leader>fk` | Find keymaps |
 
 ### Git
 
@@ -139,6 +140,28 @@ These mappings call `cmake-tools.nvim` commands and will only work when those co
 | --- | --- | --- |
 | `n` | `sn` | Update surround search lines |
 
+### Toggleterm
+
+Configured in `lua/plugins/toggleterm.lua`.
+
+| Mode | Key | Action |
+| --- | --- | --- |
+| `n` | `<leader>t` | Toggle floating terminal |
+| `t` | `<Esc>` | Leave terminal mode |
+| `t` | `<C-h>` | Move to left window |
+| `t` | `<C-j>` | Move to lower window |
+| `t` | `<C-k>` | Move to upper window |
+| `t` | `<C-l>` | Move to right window |
+| `t` | `<C-w>` | Enter normal window command mode from terminal |
+
+### Which Key
+
+Configured in `lua/plugins/which-key.lua`.
+
+| Mode | Key | Action |
+| --- | --- | --- |
+| `n` | `<leader>?` | Show buffer-local keymaps with which-key |
+
 ## Plugin Default Keymaps Worth Knowing
 
 These are not manually mapped in `lua/config/keymaps.lua`, but they come from plugin setup.
@@ -174,4 +197,8 @@ Configured in `lua/plugins/mini.lua`.
 - `o` and `O` were remapped, so they no longer leave you in insert mode.
 - `x` and `X` were remapped to the black-hole register, so they do not overwrite your default yank register.
 - FZF mappings call `fzf-lua`.
+- Use `<leader>fk` to search keymaps from inside Neovim instead of opening this cheatsheet.
+- `which-key.nvim` also shows key hints automatically when you pause after pressing `<leader>`.
+- Use `<leader>?` when you want a focused popup of buffer-local mappings.
 - CMake mappings depend on `cmake-tools.nvim` commands being available.
+- `<leader>t` opens `toggleterm.nvim` as a floating terminal, and the terminal-mode mappings only apply inside toggleterm buffers.

@@ -54,6 +54,21 @@ o.pumheight = 5
 if vim.g.neovide then
     o.guifont = "JetBrainsMono Nerd Font:h12"
 end
+
+vim.filetype.add({
+    extension = {
+        glsl = "glsl",
+        vert = "glsl",
+        frag = "glsl",
+        vs = "glsl",
+        fs = "glsl",
+        geom = "glsl",
+        comp = "glsl",
+        tesc = "glsl",
+        tese = "glsl",
+    },
+})
+
 -- Yank indication
 local highlight_group = a.nvim_create_augroup("YankHighlight", { clear = true })
 a.nvim_create_autocmd("TextYankPost", {

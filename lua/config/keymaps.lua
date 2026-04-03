@@ -54,6 +54,7 @@ map("n", "<leader>fw", fzf("grep_cword"), { desc = "Grep current word" })
 map("n", "<leader>fb", fzf("buffers"), { desc = "Find buffers" })
 map("n", "<leader>fo", fzf("oldfiles"), { desc = "Find old files" })
 map("n", "<leader>fh", fzf("help_tags"), { desc = "Help tags" })
+map("n", "<leader>fk", fzf("keymaps"), { desc = "Find keymaps" })
 
 map("n", "<leader>ld", fzf("lsp_definitions"), { desc = "LSP definitions" })
 map("n", "<leader>lr", fzf("lsp_references"), { desc = "LSP references" })

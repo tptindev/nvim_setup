@@ -12,6 +12,7 @@ return {
             "c",
             "cpp",
             "cmake",
+            "glsl",
         }
 
         require("nvim-treesitter").setup()
