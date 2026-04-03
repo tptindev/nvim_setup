@@ -1,3 +1,6 @@
+local buffers = require("config.buffers")
+buffers.setup()
+
 local function fzf(picker, opts)
     return function()
         require("fzf-lua")[picker](opts or {})
@@ -32,6 +35,41 @@ local function cmake(command, fallback)
     end
 end
 
+local function open_config_file(path)
+    return function()
+        local full_path = vim.fs.joinpath(vim.fn.stdpath("config"), path)
+        vim.cmd.edit(vim.fn.fnameescape(full_path))
+    end
+end
+
+local function close_current_buffer()
+    buffers.close()
+end
+
+local function smart_quit(force)
+    return function()
+        buffers.quit({ force = force })
+    end
+end
+
+local function smart_write_quit(force)
+    return function()
+        buffers.write_quit({ force = force })
+    end
+end
+
+local function smart_buffer_close()
+    return function()
+        buffers.close()
+    end
+end
+
+local function smart_buffer_wipe()
+    return function()
+        buffers.wipe()
+    end
+end
+
 local map = vim.keymap.set
 -- Move by screenlines instead of actual lines when using up/down keys in normal and visual mode, and when using up/down keys in insert mode
 map({ "n", "v" }, "<Up>", "gk", { desc = "Move up a screenline" })
@@ -58,9 +96,33 @@ map("n", "<leader>fb", fzf("buffers"), { desc = "Find buffers" })
 map("n", "<leader>fo", fzf("oldfiles"), { desc = "Find old files" })
 map("n", "<leader>fh", fzf("help_tags"), { desc = "Help tags" })
 map("n", "<leader>fk", fzf("keymaps"), { desc = "Find keymaps" })
+map("n", "<leader>fc", open_config_file("docs/cheatsheet.md"), { desc = "Open cheatsheet" })
 map({ "n", "i" }, "<C-Tab>", "<Cmd>BufferLineCycleNext<CR>", { desc = "Next buffer tab" })
 map({ "n", "i" }, "<C-S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", { desc = "Previous buffer tab" })
-map("n", "<leader>bd", "<Cmd>bdelete<CR>", { desc = "Delete current buffer" })
+map("n", "<leader>bd", close_current_buffer, { desc = "Delete current buffer" })
+
+vim.api.nvim_create_user_command("SmartQuit", smart_quit(false), {})
+vim.api.nvim_create_user_command("SmartQuitForce", smart_quit(true), {})
+vim.api.nvim_create_user_command("SmartWriteQuit", smart_write_quit(false), {})
+vim.api.nvim_create_user_command("SmartWriteQuitForce", smart_write_quit(true), {})
+vim.api.nvim_create_user_command("SmartBdelete", smart_buffer_close(), {})
+vim.api.nvim_create_user_command("SmartBwipeout", smart_buffer_wipe(), {})
+
+vim.cmd([[
+  cnoreabbrev <expr> q ((getcmdtype() ==# ':' && getcmdline() ==# 'q') ? 'SmartQuit' : 'q')
+  cnoreabbrev <expr> quit ((getcmdtype() ==# ':' && getcmdline() ==# 'quit') ? 'SmartQuit' : 'quit')
+  cnoreabbrev <expr> q! ((getcmdtype() ==# ':' && getcmdline() ==# 'q!') ? 'SmartQuitForce' : 'q!')
+  cnoreabbrev <expr> quit! ((getcmdtype() ==# ':' && getcmdline() ==# 'quit!') ? 'SmartQuitForce' : 'quit!')
+  cnoreabbrev <expr> bd ((getcmdtype() ==# ':' && getcmdline() ==# 'bd') ? 'SmartBdelete' : 'bd')
+  cnoreabbrev <expr> bdelete ((getcmdtype() ==# ':' && getcmdline() ==# 'bdelete') ? 'SmartBdelete' : 'bdelete')
+  cnoreabbrev <expr> bw ((getcmdtype() ==# ':' && getcmdline() ==# 'bw') ? 'SmartBwipeout' : 'bw')
+  cnoreabbrev <expr> bwipeout ((getcmdtype() ==# ':' && getcmdline() ==# 'bwipeout') ? 'SmartBwipeout' : 'bwipeout')
+  cnoreabbrev <expr> wq ((getcmdtype() ==# ':' && getcmdline() ==# 'wq') ? 'SmartWriteQuit' : 'wq')
+  cnoreabbrev <expr> x ((getcmdtype() ==# ':' && getcmdline() ==# 'x') ? 'SmartWriteQuit' : 'x')
+  cnoreabbrev <expr> exit ((getcmdtype() ==# ':' && getcmdline() ==# 'exit') ? 'SmartWriteQuit' : 'exit')
+  cnoreabbrev <expr> xit ((getcmdtype() ==# ':' && getcmdline() ==# 'xit') ? 'SmartWriteQuit' : 'xit')
+  cnoreabbrev <expr> wq! ((getcmdtype() ==# ':' && getcmdline() ==# 'wq!') ? 'SmartWriteQuitForce' : 'wq!')
+]])
 
 map("n", "<leader>ld", fzf("lsp_definitions"), { desc = "LSP definitions" })
 map("n", "<leader>lr", fzf("lsp_references"), { desc = "LSP references" })

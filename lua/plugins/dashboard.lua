@@ -3,6 +3,7 @@ return {
     event = 'VimEnter',
     config = function()
         local uv = vim.uv or vim.loop
+        local projects = require("config.projects")
         local header = {
             '',
             '',
@@ -75,7 +76,7 @@ return {
                             return
                         end
 
-                        vim.cmd('lcd ' .. vim.fn.fnameescape(path))
+                        projects.set_root(path)
                         vim.cmd('enew')
                         vim.schedule(function()
                             vim.cmd('Neotree close')
