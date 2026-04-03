@@ -7,14 +7,36 @@ o.cursorlineopt = "screenline"
 o.cursorcolumn = true
 -- Dynamic line numbers
 o.number = true
-a.nvim_create_autocmd(
-    { "BufEnter", "FocusGained", "InsertLeave", "WinEnter" },
-    { pattern = "*", command = "if &nu && mode() != 'i' | set rnu | endif", }
-)
-a.nvim_create_autocmd(
-    { "BufLeave", "FocusLost", "InsertEnter", "WinLeave" },
-    { pattern = "*", command = "if &nu | set nornu | endif", }
-)
+local number_toggle_group = a.nvim_create_augroup("DynamicLineNumbers", { clear = true })
+
+local function should_show_line_numbers()
+    return vim.bo.buftype == "" and vim.bo.filetype ~= "dashboard"
+end
+
+a.nvim_create_autocmd({ "BufEnter", "FocusGained", "InsertLeave", "WinEnter" }, {
+    group = number_toggle_group,
+    pattern = "*",
+    callback = function()
+        if not should_show_line_numbers() then
+            return
+        end
+
+        vim.wo.number = true
+        vim.wo.relativenumber = vim.fn.mode() ~= "i"
+    end,
+})
+
+a.nvim_create_autocmd({ "BufLeave", "FocusLost", "InsertEnter", "WinLeave" }, {
+    group = number_toggle_group,
+    pattern = "*",
+    callback = function()
+        if not should_show_line_numbers() then
+            return
+        end
+
+        vim.wo.relativenumber = false
+    end,
+})
 -- No line wrapping
 o.wrap = false
 -- Scroll offsetting
