@@ -44,6 +44,9 @@ map('n', 'o', "o<Esc>", { desc = "Prepend empty line" })
 -- Don't copy deleted text into the default register when using x/X in normal and visual mode
 map({ "n", "v" }, "x", '"_x')
 map({ "n", "v" }, "X", '"_X')
+-- Avoid accidentally showing the built-in cursor info panel under the statusline
+map({ "n", "x" }, "g<C-g>", "<Nop>", { desc = "Disable built-in cursor info" })
+map("n", "<leader>ui", vim.show_pos, { desc = "Show cursor info" })
 -- LSP keymaps (only work when an LSP server is attached to the buffer)
 map("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename" })
 map("n", "K", vim.lsp.buf.hover, { desc = "Hover" })

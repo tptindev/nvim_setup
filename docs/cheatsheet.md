@@ -5,6 +5,29 @@ Quick note for this config:
 - `mapleader = <Space>`
 - `maplocalleader = \`
 
+## Core Options In This Config
+
+These are not keymaps, but they strongly affect day-to-day editing behavior.
+
+| Option / Behavior            | Value / Effect                                      |
+| ---------------------------- | --------------------------------------------------- |
+| Line numbers                 | Absolute in normal mode, relative outside insert    |
+| Cursor guides                | `cursorline`, `cursorlineopt=screenline`, `cursorcolumn` |
+| Wrapping                     | Disabled (`wrap = false`)                           |
+| Scroll offset                | `3` lines                                           |
+| Search                       | `ignorecase`, `smartcase`, no persistent highlight  |
+| Substitution preview         | `inccommand = split`                                |
+| Folding                      | `foldmethod = indent`, `foldlevel = 4`              |
+| Indentation                  | `autoindent`, `copyindent`, `breakindent`           |
+| Tabs / indents               | `tabstop = 4`, `shiftwidth = 4`                     |
+| Spell check                  | Enabled for `en_us`                                 |
+| Clipboard                    | Uses system clipboard (`unnamedplus`)               |
+| Undo                         | Persistent undo enabled                             |
+| Colors                       | 24-bit color enabled (`termguicolors`)              |
+| Tabline                      | Always shown (`showtabline = 2`)                    |
+| Command line                 | Hidden when idle (`cmdheight = 0`)                  |
+| File formats                 | Writes Unix line endings by default                 |
+
 ## Core Default Keymaps
 
 These are common built-in Vim/Neovim motions and actions worth remembering.
@@ -48,6 +71,13 @@ These are common built-in Vim/Neovim motions and actions worth remembering.
 | `:tabnew`            | Open a new tab                           |
 | `gt` / `gT`          | Next / previous tab                      |
 
+### Buffers
+
+| Key              | Action                    |
+| ---------------- | ------------------------- |
+| `:bnext` / `:bprev` | Next / previous buffer |
+| `:bdelete`       | Close current buffer      |
+
 ### Insert Mode
 
 | Key     | Action                    |
@@ -73,6 +103,16 @@ Source: `lua/config/keymaps.lua`
 | `n`   | `o`      | Add empty line below without staying in insert mode | Overrides default `o` behavior |
 | `n,v` | `x`      | Delete without yanking to default register          | Uses black-hole register       |
 | `n,v` | `X`      | Delete backward without yanking to default register | Uses black-hole register       |
+| `n,x` | `g<C-g>` | Disabled                                            | Prevents built-in cursor info popup |
+| `n`   | `<leader>ui` | Show cursor info                                | Uses `vim.show_pos()`          |
+
+### Buffers
+
+| Mode  | Key            | Action               |
+| ----- | -------------- | -------------------- |
+| `n,i` | `<C-Tab>`      | Next buffer tab      |
+| `n,i` | `<C-S-Tab>`    | Previous buffer tab  |
+| `n`   | `<leader>bd`   | Delete current buffer |
 
 ### LSP
 
@@ -194,11 +234,16 @@ Configured in `lua/plugins/mini.lua`.
 ## Quick Notes
 
 - `K` and `<leader>rn` depend on LSP being attached to the current buffer.
+- Dynamic line numbers are enabled: relative numbers disappear in insert mode and on inactive windows.
 - `o` and `O` were remapped, so they no longer leave you in insert mode.
 - `x` and `X` were remapped to the black-hole register, so they do not overwrite your default yank register.
+- `g<C-g>` was disabled; use `<leader>ui` for cursor position info instead.
+- `<C-Tab>` and `<C-S-Tab>` switch buffers through `bufferline.nvim`.
+- `<leader>bd` currently runs `:bdelete`.
 - FZF mappings call `fzf-lua`.
 - Use `<leader>fk` to search keymaps from inside Neovim instead of opening this cheatsheet.
 - `which-key.nvim` also shows key hints automatically when you pause after pressing `<leader>`.
 - Use `<leader>?` when you want a focused popup of buffer-local mappings.
 - CMake mappings depend on `cmake-tools.nvim` commands being available.
 - `<leader>t` opens `toggleterm.nvim` as a floating terminal, and the terminal-mode mappings only apply inside toggleterm buffers.
+- GLSL-related extensions like `.vert`, `.frag`, `.geom`, `.comp`, `.tesc`, and `.tese` are detected as `glsl`.

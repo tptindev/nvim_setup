@@ -74,6 +74,10 @@ o.updatetime = 500
 o.timeoutlen = 300
 -- Popup menu height
 o.pumheight = 5
+-- Hide the command-line row when idle so transient messages do not linger under the statusline
+o.cmdheight = 0
+o.showmode = false
+o.showcmd = false
 -- Always show the top tabline for open buffers
 o.showtabline = 2
 -- Enable 24-bit colors so Treesitter/LSP highlights can use richer palettes
