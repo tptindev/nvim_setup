@@ -1,4 +1,5 @@
 return {
+    require("plugins.colorscheme"),
     require("plugins.blink"),
     require("plugins.fzf"),
     require("plugins.indent_blankline"),

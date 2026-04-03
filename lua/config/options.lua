@@ -51,6 +51,8 @@ o.updatetime = 500
 o.timeoutlen = 300
 -- Popup menu height
 o.pumheight = 5
+-- Enable 24-bit colors so Treesitter/LSP highlights can use richer palettes
+o.termguicolors = true
 -- GUI font for Neovide
 if vim.g.neovide then
     o.guifont = "JetBrainsMono Nerd Font:h12"
