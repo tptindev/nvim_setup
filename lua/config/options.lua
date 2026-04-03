@@ -73,6 +73,8 @@ o.updatetime = 500
 o.timeoutlen = 300
 -- Popup menu height
 o.pumheight = 5
+-- Always show the top tabline for open buffers
+o.showtabline = 2
 -- Enable 24-bit colors so Treesitter/LSP highlights can use richer palettes
 o.termguicolors = true
 -- GUI font for Neovide

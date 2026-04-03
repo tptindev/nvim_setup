@@ -1,6 +1,7 @@
 return {
     require("plugins.colorscheme"),
     require("plugins.blink"),
+    require("plugins.bufferline"),
     require("plugins.fzf"),
     require("plugins.indent_blankline"),
     require("plugins.treesitter"),
