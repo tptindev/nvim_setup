@@ -22,6 +22,16 @@ return {
         },
         cmake_use_preset = true,
         cmake_soft_link_compile_commands = true,
+        cmake_runner = {
+            name = "toggleterm",
+            opts = {
+                direction = "float",
+                close_on_exit = false,
+                auto_scroll = true,
+                auto_focus = true,
+                singleton = true,
+            },
+        },
     },
     config = function(_, opts)
         require("cmake-tools").setup(opts)
