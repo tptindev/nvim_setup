@@ -48,6 +48,7 @@ These are common built-in Vim/Neovim motions and actions worth remembering.
 | `o` / `O`               | New line below / above and enter insert mode |
 | `dd` / `yy`             | Delete line / yank line                      |
 | `p` / `P`               | Paste after / before cursor                  |
+| `"+y` / `"+p`           | Copy / paste with the system clipboard       |
 | `u` / `<C-r>`           | Undo / redo                                  |
 | `x` / `X`               | Delete char under / before cursor            |
 | `.`                     | Repeat last change                           |
@@ -77,6 +78,17 @@ These are common built-in Vim/Neovim motions and actions worth remembering.
 | ---------------- | ------------------------- |
 | `:bnext` / `:bprev` | Next / previous buffer |
 | `:bdelete`       | Close current buffer      |
+
+### Clipboard And Selection
+
+| Key            | Action                               |
+| -------------- | ------------------------------------ |
+| `yy` / `y`     | Copy line / selected text            |
+| `p` / `P`      | Paste after / before cursor          |
+| `dd` / `d`     | Cut line / selected text             |
+| `"+yy`         | Copy current line to system clipboard |
+| `"+y`          | Copy selection to system clipboard   |
+| `"+p` / `"+P`  | Paste from system clipboard          |
 
 ### Insert Mode
 
@@ -113,6 +125,12 @@ Source: `lua/config/keymaps.lua`
 | `n,i` | `<C-Tab>`      | Next buffer tab      |
 | `n,i` | `<C-S-Tab>`    | Previous buffer tab  |
 | `n`   | `<leader>bd`   | Delete current buffer |
+
+### Explorer
+
+| Mode | Key         | Action                  |
+| ---- | ----------- | ----------------------- |
+| `n`  | `<leader>e` | Toggle `neo-tree` sidebar |
 
 ### LSP
 
@@ -237,13 +255,16 @@ Configured in `lua/plugins/mini.lua`.
 - Dynamic line numbers are enabled: relative numbers disappear in insert mode and on inactive windows.
 - `o` and `O` were remapped, so they no longer leave you in insert mode.
 - `x` and `X` were remapped to the black-hole register, so they do not overwrite your default yank register.
+- `clipboard = unnamedplus` is enabled, so normal yank and paste usually integrate with the system clipboard.
 - `g<C-g>` was disabled; use `<leader>ui` for cursor position info instead.
 - `<C-Tab>` and `<C-S-Tab>` switch buffers through `bufferline.nvim`.
 - `<leader>bd` currently runs `:bdelete`.
+- `<leader>e` toggles `neo-tree`, and the sidebar also opens automatically on startup outside the dashboard.
 - FZF mappings call `fzf-lua`.
 - Use `<leader>fk` to search keymaps from inside Neovim instead of opening this cheatsheet.
 - `which-key.nvim` also shows key hints automatically when you pause after pressing `<leader>`.
 - Use `<leader>?` when you want a focused popup of buffer-local mappings.
 - CMake mappings depend on `cmake-tools.nvim` commands being available.
 - `<leader>t` opens `toggleterm.nvim` as a floating terminal, and the terminal-mode mappings only apply inside toggleterm buffers.
+- `screenkey.nvim` starts enabled by default and auto-hides in `dashboard` and `toggleterm` buffers.
 - GLSL-related extensions like `.vert`, `.frag`, `.geom`, `.comp`, `.tesc`, and `.tese` are detected as `glsl`.
