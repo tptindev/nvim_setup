@@ -117,6 +117,7 @@ Source: `lua/config/keymaps.lua`
 | `n,v` | `X`      | Delete backward without yanking to default register | Uses black-hole register       |
 | `n,x` | `g<C-g>` | Disabled                                            | Prevents built-in cursor info popup |
 | `n`   | `<leader>ui` | Show cursor info                                | Uses `vim.show_pos()`          |
+| `n`   | `<leader>sk` | Toggle screenkey                                  | Shows or hides keystroke overlay |
 
 ### Buffers
 
@@ -279,5 +280,5 @@ Configured in `lua/plugins/mini.lua`.
 - Use `<leader>?` when you want a focused popup of buffer-local mappings.
 - CMake mappings depend on `cmake-tools.nvim` commands being available.
 - `<leader>t` opens `toggleterm.nvim` as a floating terminal, and the terminal-mode mappings only apply inside toggleterm buffers.
-- `screenkey.nvim` starts enabled by default and auto-hides in `dashboard` and `toggleterm` buffers.
+- `screenkey.nvim` is off by default; use `<leader>sk` to toggle it when needed.
 - GLSL-related extensions like `.vert`, `.frag`, `.geom`, `.comp`, `.tesc`, and `.tese` are detected as `glsl`.

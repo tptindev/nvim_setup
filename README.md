@@ -16,7 +16,7 @@ This repo uses `lazy.nvim` for plugin management and keeps the configuration spl
 - `cmake-tools.nvim` shortcuts for configure, build, run, and target selection
 - `which-key.nvim` for discoverable leader mappings
 - `dashboard-nvim` with shortcuts for files, projects, settings, and recent work
-- `screenkey.nvim` enabled by default, with auto-hide behavior for dashboard and terminal buffers
+- `screenkey.nvim` available on demand through a manual toggle
 
 ## Workflow
 
