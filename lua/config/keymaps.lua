@@ -70,6 +70,10 @@ local function smart_buffer_wipe()
     end
 end
 
+local function notify_use_fine_cmdline()
+    vim.notify("Use <leader>: for fine command line", vim.log.levels.INFO)
+end
+
 local map = vim.keymap.set
 -- Move by screenlines instead of actual lines when using up/down keys in normal and visual mode, and when using up/down keys in insert mode
 map({ "n", "v" }, "<Up>", "gk", { desc = "Move up a screenline" })
@@ -84,6 +88,7 @@ map({ "n", "v" }, "x", '"_x')
 map({ "n", "v" }, "X", '"_X')
 -- Avoid accidentally showing the built-in cursor info panel under the statusline
 map({ "n", "x" }, "g<C-g>", "<Nop>", { desc = "Disable built-in cursor info" })
+map("n", ":", notify_use_fine_cmdline, { desc = "Use fine command line" })
 map("n", "<leader>ui", vim.show_pos, { desc = "Show cursor info" })
 map("n", "<leader>sk", function()
     require("screenkey").toggle()

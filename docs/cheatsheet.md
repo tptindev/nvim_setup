@@ -134,6 +134,7 @@ Source: `lua/config/keymaps.lua`
 
 | Mode | Key         | Action                    |
 | ---- | ----------- | ------------------------- |
+| `n`  | `:`         | Show reminder to use `<leader>:` |
 | `n`  | `<leader>:` | Open fine command line    |
 
 ### Explorer
@@ -271,7 +272,8 @@ Configured in `lua/plugins/mini.lua`.
 - `<C-Tab>` and `<C-S-Tab>` switch buffers through `bufferline.nvim`.
 - `<leader>w`, `<leader>q`, and `<leader>x` provide quick save / smart quit / save-and-quit shortcuts.
 - `<leader>bd` currently runs `:bdelete`.
-- `<leader>:` opens `fine-cmdline.nvim` in a floating window while keeping normal `:` unchanged.
+- `:` is blocked in normal mode and shows a reminder to use `<leader>:` instead.
+- `<leader>:` opens `fine-cmdline.nvim` in a floating window.
 - `<leader>e` toggles `neo-tree`, and the sidebar also opens automatically on startup outside the dashboard.
 - FZF mappings call `fzf-lua`.
 - Use `<leader>fc` to open this cheatsheet directly.
