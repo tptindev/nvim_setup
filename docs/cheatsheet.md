@@ -28,6 +28,16 @@ These are not keymaps, but they strongly affect day-to-day editing behavior.
 | Command line                 | Hidden when idle (`cmdheight = 0`)                  |
 | File formats                 | Writes Unix line endings by default                 |
 
+## Statusline
+
+The statusline uses `lualine.nvim` in a focused IDE layout:
+
+- Left side: mode, Git branch, and diff summary
+- Middle: current file path plus modified or readonly state
+- Right side: diagnostics, attached LSP clients, filetype, progress, and line/column
+
+Inactive windows keep a quieter statusline, and the dashboard disables the normal statusline entirely.
+
 ## Core Default Keymaps
 
 These are common built-in Vim/Neovim motions and actions worth remembering.
