@@ -59,7 +59,7 @@ These are common built-in Vim/Neovim motions and actions worth remembering.
 | `ciw`                   | Change inner word                            |
 | `di(`                   | Delete inside parentheses                    |
 | `yi"`                   | Yank inside quotes                           |
-| `:w` / `:q` / `:wq`     | Save / quit / save and quit                  |
+| `:w` / `:q` / `:wq` / `:waq` | Save / quit / save and quit            |
 | `:nohlsearch`           | Clear search highlight                       |
 
 ### Window And Tab Management
@@ -124,6 +124,9 @@ Source: `lua/config/keymaps.lua`
 | ----- | -------------- | -------------------- |
 | `n,i` | `<C-Tab>`      | Next buffer tab      |
 | `n,i` | `<C-S-Tab>`    | Previous buffer tab  |
+| `n`   | `<leader>w`    | Save current buffer  |
+| `n`   | `<leader>q`    | Smart quit current buffer |
+| `n`   | `<leader>x`    | Save and smart quit current buffer |
 | `n`   | `<leader>bd`   | Delete current buffer |
 
 ### Command Line
@@ -265,6 +268,7 @@ Configured in `lua/plugins/mini.lua`.
 - `clipboard = unnamedplus` is enabled, so normal yank and paste usually integrate with the system clipboard.
 - `g<C-g>` was disabled; use `<leader>ui` for cursor position info instead.
 - `<C-Tab>` and `<C-S-Tab>` switch buffers through `bufferline.nvim`.
+- `<leader>w`, `<leader>q`, and `<leader>x` provide quick save / smart quit / save-and-quit shortcuts.
 - `<leader>bd` currently runs `:bdelete`.
 - `<leader>:` opens `fine-cmdline.nvim` in a floating window while keeping normal `:` unchanged.
 - `<leader>e` toggles `neo-tree`, and the sidebar also opens automatically on startup outside the dashboard.
