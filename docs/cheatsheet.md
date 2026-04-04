@@ -126,6 +126,12 @@ Source: `lua/config/keymaps.lua`
 | `n,i` | `<C-S-Tab>`    | Previous buffer tab  |
 | `n`   | `<leader>bd`   | Delete current buffer |
 
+### Command Line
+
+| Mode | Key         | Action                    |
+| ---- | ----------- | ------------------------- |
+| `n`  | `<leader>:` | Open fine command line    |
+
 ### Explorer
 
 | Mode | Key         | Action                  |
@@ -260,6 +266,7 @@ Configured in `lua/plugins/mini.lua`.
 - `g<C-g>` was disabled; use `<leader>ui` for cursor position info instead.
 - `<C-Tab>` and `<C-S-Tab>` switch buffers through `bufferline.nvim`.
 - `<leader>bd` currently runs `:bdelete`.
+- `<leader>:` opens `fine-cmdline.nvim` in a floating window while keeping normal `:` unchanged.
 - `<leader>e` toggles `neo-tree`, and the sidebar also opens automatically on startup outside the dashboard.
 - FZF mappings call `fzf-lua`.
 - Use `<leader>fc` to open this cheatsheet directly.

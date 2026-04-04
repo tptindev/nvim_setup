@@ -48,15 +48,30 @@ return {
         vim.api.nvim_create_autocmd("VimEnter", {
             callback = function()
                 local current = vim.api.nvim_get_current_buf()
+                local current_win = vim.api.nvim_get_current_win()
                 local filetype = vim.bo[current].filetype
+                local buftype = vim.bo[current].buftype
+                local win_config = vim.api.nvim_win_get_config(current_win)
 
-                if filetype == "dashboard" then
+                if filetype == "dashboard" or filetype == "lazy" or buftype ~= "" then
                     return
                 end
 
-                vim.schedule(function()
+                if win_config.relative ~= "" then
+                    return
+                end
+
+                vim.defer_fn(function()
+                    if not vim.api.nvim_buf_is_valid(current) or not vim.api.nvim_win_is_valid(current_win) then
+                        return
+                    end
+
+                    if vim.bo[current].filetype == "lazy" or vim.bo[current].buftype ~= "" then
+                        return
+                    end
+
                     vim.cmd("Neotree show left reveal_force_cwd")
-                end)
+                end, 20)
             end,
         })
     end,

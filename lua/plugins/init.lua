@@ -3,6 +3,7 @@ return {
     require("plugins.blink"),
     require("plugins.bufferline"),
     require("plugins.fzf"),
+    require("plugins.fine_cmdline"),
     require("plugins.indent_blankline"),
     require("plugins.treesitter"),
     require("plugins.treesitter_ctx"),
