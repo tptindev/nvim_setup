@@ -16,6 +16,9 @@ return {
                 auto_show = false,
             },
         },
+        signature = {
+            enabled = true,
+        },
         sources = {
             default = { "lsp", "path", "snippets", "buffer" },
         },

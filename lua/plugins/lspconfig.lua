@@ -48,7 +48,9 @@ return {
         -- mason-lspconfig v2 installs and auto-enables configured servers.
         mason_lspconfig.setup({
             ensure_installed = { "clangd", "lua_ls", "glsl_analyzer" },
-            automatic_enable = true,
+            automatic_enable = {
+                exclude = { "cmake" },
+            },
         })
     end,
 }

@@ -4,6 +4,9 @@ return {
     opts = {
         delay = 300,
         preset = "modern",
+        triggers = {
+            { "<leader>", mode = { "n", "v" } },
+        },
         spec = {
             { "<leader>f", group = "Find" },
             { "<leader>g", group = "Git" },
