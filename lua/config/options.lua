@@ -60,9 +60,11 @@ o.foldlevel = 4
 o.autoindent = true
 o.copyindent = true
 o.breakindent = true
+o.expandtab = true
 -- Tab width
 o.tabstop = 4
 o.shiftwidth = 4
+o.softtabstop = 4
 -- Spell checking
 o.spell = true
 o.spelllang = "en_us"
@@ -99,6 +101,18 @@ vim.filetype.add({
         tesc = "glsl",
         tese = "glsl",
     },
+})
+
+local c_style_group = a.nvim_create_augroup("CStyleIndentation", { clear = true })
+a.nvim_create_autocmd("FileType", {
+    group = c_style_group,
+    pattern = { "c", "cpp" },
+    callback = function()
+        vim.bo.tabstop = 2
+        vim.bo.shiftwidth = 2
+        vim.bo.softtabstop = 2
+        vim.bo.expandtab = true
+    end,
 })
 
 -- Yank indication

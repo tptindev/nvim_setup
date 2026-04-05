@@ -11,6 +11,7 @@ return {
 
         vim.lsp.config("clangd", {
             capabilities = capabilities,
+            single_file_support = true,
             cmd = {
                 "clangd",
                 "--background-index",
