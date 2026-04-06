@@ -11,13 +11,13 @@ return {
 
         vim.lsp.config("clangd", {
             capabilities = capabilities,
-            single_file_support = true,
             cmd = {
                 "clangd",
                 "--background-index",
                 "--clang-tidy",
                 "--completion-style=detailed",
                 "--function-arg-placeholders=1",
+                "--header-insertion=iwyu",
             },
             root_markers = {
                 "CMakePresets.json",
@@ -26,8 +26,13 @@ return {
                 "compile_flags.txt",
                 ".clangd",
                 ".clang-tidy",
-                ".git",
             },
+            on_new_config = function(new_config, new_root_dir)
+                local ok, cmake = pcall(require, "cmake-tools")
+                if ok then
+                    cmake.clangd_on_new_config(new_config)
+                end
+            end,
         })
 
         vim.lsp.config("lua_ls", {

@@ -21,7 +21,7 @@ return {
             "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
         },
         cmake_use_preset = true,
-        cmake_soft_link_compile_commands = true,
+        cmake_soft_link_compile_commands = false,
         cmake_runner = {
             name = "toggleterm",
             opts = {

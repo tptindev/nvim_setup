@@ -19,7 +19,14 @@ return {
             vim.cmd('FzfLua files cwd=' .. vim.fn.stdpath('config'))
         end
 
-        local function collect_directories(root, directories)
+        local max_scan_depth = 3
+
+        local function collect_directories(root, directories, depth)
+            depth = depth or 0
+            if depth >= max_scan_depth then
+                return
+            end
+
             local handle = uv.fs_scandir(root)
             if not handle then
                 return
@@ -34,7 +41,7 @@ return {
                 if kind == 'directory' and name ~= '.git' then
                     local path = vim.fs.joinpath(root, name)
                     table.insert(directories, path)
-                    collect_directories(path, directories)
+                    collect_directories(path, directories, depth + 1)
                 end
             end
         end
@@ -116,7 +123,7 @@ return {
             end
 
             data = data:gsub('%z', '')
-            local ok_load, chunk = pcall(loadstring, data)
+            local ok_load, chunk = pcall(load, data)
             if not ok_load or type(chunk) ~= 'function' then
                 return {}
             end
@@ -168,7 +175,7 @@ return {
 
             data = data:gsub('%z', '')
 
-            local ok_load, chunk = pcall(loadstring, data)
+            local ok_load, chunk = pcall(load, data)
             local ok_exec = false
 
             if ok_load and type(chunk) == 'function' then

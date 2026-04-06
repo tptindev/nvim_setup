@@ -12,7 +12,7 @@ return {
             { "<leader>g", group = "Git" },
             { "<leader>l", group = "LSP" },
             { "<leader>c", group = "CMake" },
-            { "<leader>t", group = "Terminal" },
+            { "<leader>t", desc = "Toggle Terminal" },
         },
     },
     keys = {

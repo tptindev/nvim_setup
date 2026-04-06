@@ -85,6 +85,14 @@ local function notify_use_fine_cmdline()
     vim.notify("Use <leader>: for fine command line", vim.log.levels.INFO)
 end
 
+local function set_lsp_keymaps(event)
+    local opts = { buffer = event.buf }
+    local map = vim.keymap.set
+
+    map("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename" }))
+    map("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover" }))
+end
+
 local map = vim.keymap.set
 -- Move by screenlines instead of actual lines when using up/down keys in normal and visual mode, and when using up/down keys in insert mode
 map({ "n", "v" }, "<Up>", "gk", { desc = "Move up a screenline" })
@@ -104,9 +112,6 @@ map("n", "<leader>ui", vim.show_pos, { desc = "Show cursor info" })
 map("n", "<leader>sk", function()
     require("screenkey").toggle()
 end, { desc = "Toggle screenkey" })
--- LSP keymaps (only work when an LSP server is attached to the buffer)
-map("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename" })
-map("n", "K", vim.lsp.buf.hover, { desc = "Hover" })
 -- FZF keymaps
 map("n", "<leader>ff", fzf("files"), { desc = "Find files" })
 map("n", "<leader>fg", fzf("live_grep"), { desc = "Live grep" })
@@ -191,3 +196,7 @@ end, { desc = "Select next context" })
 map("n", "sn", function()
     MiniSurround.update_n_lines()
 end, { desc = "Update surround search lines" })
+
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = set_lsp_keymaps,
+})
