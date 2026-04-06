@@ -16,7 +16,6 @@ return {
         },
     },
     opts = {
-        open_mapping = [[<leader>t]],
         direction = "float",
         hide_numbers = true,
         shade_terminals = true,
