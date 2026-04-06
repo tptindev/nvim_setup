@@ -58,6 +58,17 @@ local function smart_write_quit(force)
     end
 end
 
+local function smart_write(force)
+    return function()
+        if vim.bo.buftype ~= "" then
+            vim.notify("Current buffer cannot be written", vim.log.levels.WARN)
+            return
+        end
+
+        vim.cmd(force and "write!" or "write")
+    end
+end
+
 local function smart_buffer_close()
     return function()
         buffers.close()
@@ -107,13 +118,15 @@ map("n", "<leader>fk", fzf("keymaps"), { desc = "Find keymaps" })
 map("n", "<leader>fc", open_config_file("docs/cheatsheet.md"), { desc = "Open cheatsheet" })
 map({ "n", "i" }, "<C-Tab>", "<Cmd>BufferLineCycleNext<CR>", { desc = "Next buffer tab" })
 map({ "n", "i" }, "<C-S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", { desc = "Previous buffer tab" })
-map("n", "<leader>w", "<Cmd>write<CR>", { desc = "Write current buffer" })
+map("n", "<leader>w", smart_write(false), { desc = "Write current buffer" })
 map("n", "<leader>q", smart_quit(false), { desc = "Smart quit current buffer" })
 map("n", "<leader>x", smart_write_quit(false), { desc = "Smart write and quit current buffer" })
 map("n", "<leader>bd", close_current_buffer, { desc = "Delete current buffer" })
 
 vim.api.nvim_create_user_command("SmartQuit", smart_quit(false), {})
 vim.api.nvim_create_user_command("SmartQuitForce", smart_quit(true), {})
+vim.api.nvim_create_user_command("SmartWrite", smart_write(false), {})
+vim.api.nvim_create_user_command("SmartWriteForce", smart_write(true), {})
 vim.api.nvim_create_user_command("SmartWriteQuit", smart_write_quit(false), {})
 vim.api.nvim_create_user_command("SmartWriteQuitForce", smart_write_quit(true), {})
 vim.api.nvim_create_user_command("SmartBdelete", smart_buffer_close(), {})
@@ -124,6 +137,10 @@ vim.cmd([[
   cnoreabbrev <expr> quit ((getcmdtype() ==# ':' && getcmdline() ==# 'quit') ? 'SmartQuit' : 'quit')
   cnoreabbrev <expr> q! ((getcmdtype() ==# ':' && getcmdline() ==# 'q!') ? 'SmartQuitForce' : 'q!')
   cnoreabbrev <expr> quit! ((getcmdtype() ==# ':' && getcmdline() ==# 'quit!') ? 'SmartQuitForce' : 'quit!')
+  cnoreabbrev <expr> w ((getcmdtype() ==# ':' && getcmdline() ==# 'w') ? 'SmartWrite' : 'w')
+  cnoreabbrev <expr> write ((getcmdtype() ==# ':' && getcmdline() ==# 'write') ? 'SmartWrite' : 'write')
+  cnoreabbrev <expr> w! ((getcmdtype() ==# ':' && getcmdline() ==# 'w!') ? 'SmartWriteForce' : 'w!')
+  cnoreabbrev <expr> write! ((getcmdtype() ==# ':' && getcmdline() ==# 'write!') ? 'SmartWriteForce' : 'write!')
   cnoreabbrev <expr> bd ((getcmdtype() ==# ':' && getcmdline() ==# 'bd') ? 'SmartBdelete' : 'bd')
   cnoreabbrev <expr> bdelete ((getcmdtype() ==# ':' && getcmdline() ==# 'bdelete') ? 'SmartBdelete' : 'bdelete')
   cnoreabbrev <expr> bw ((getcmdtype() ==# ':' && getcmdline() ==# 'bw') ? 'SmartBwipeout' : 'bw')

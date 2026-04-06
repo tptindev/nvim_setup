@@ -62,9 +62,9 @@ o.copyindent = true
 o.breakindent = true
 o.expandtab = true
 -- Tab width
-o.tabstop = 4
-o.shiftwidth = 4
-o.softtabstop = 4
+o.tabstop = 2
+o.shiftwidth = 2
+o.softtabstop = 2
 -- Spell checking
 o.spell = true
 o.spelllang = "en_us"
