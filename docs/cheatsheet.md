@@ -156,6 +156,58 @@ Source: `lua/config/keymaps.lua`
 | ---- | ----------- | ----------------------- |
 | `n`  | `<leader>e` | Toggle `neo-tree` sidebar |
 
+### Media Files
+
+Images, audio and video go to the system player instead of being read into a
+buffer. Neovim cannot render any of them, so loading one only fills the window
+with binary noise and leaves a buffer to close again.
+
+The hook is a `BufReadCmd` in `lua/config/media.lua`, which replaces the read
+itself — so it catches every route to a file: `:edit`, neo-tree, fzf-lua, a
+command-line argument, or a folder dropped on Neovide. The file is handed to
+`vim.ui.open`, which is the same thing `gx` uses, so each type opens in whatever
+Windows is set to open it with. The buffer Neovim made for it is taken apart
+again, leaving the window on the file that was there before.
+
+| Kind  | Extensions |
+| ----- | ---------- |
+| Image | `png` `jpg` `jpeg` `gif` `bmp` `webp` `ico` `tif` `tiff` `avif` `heic` |
+| Audio | `mp3` `wav` `flac` `ogg` `oga` `m4a` `aac` `wma` `opus` |
+| Video | `mp4` `mkv` `avi` `mov` `wmv` `webm` `flv` `m4v` `mpg` `mpeg` |
+
+`svg` is deliberately absent: it is text, and editing one is a normal thing to
+want to do. Case does not matter — `photo.JPG` is matched too.
+
+`:MediaOpen [file]` opens a file in the player on demand, defaulting to the
+current buffer. To get the raw bytes of a media file instead, set
+`vim.g.media_autoopen = false` and open it again.
+
+### Auto Save
+
+A modified file is written back on **leaving insert mode**, on **moving to
+another buffer or window**, and when **Neovim loses focus**. Nothing is written
+while you are still typing, so the cursor never moves under you.
+
+Autosave deliberately **does not format**. conform.nvim formats on
+`BufWritePre`, and having clang-format reflow half-written code every time you
+press `<Esc>` is not useful — `<leader>w` / `:w` still formats as before.
+`lua/config/autosave.lua` flips conform's own `b:disable_autoformat` for the
+duration of the write and restores whatever was there before, so a manual
+`:FormatToggle!` is not lost.
+
+Skipped: anything that is not a real file (terminals, help, the panels, scratch
+buffers), read-only and unmodifiable buffers, unnamed buffers, files under a
+directory that does not exist yet, and `gitcommit` / `gitrebase`, which are
+written by hand on purpose.
+
+| Command             | Action                                            |
+| ------------------- | ------------------------------------------------- |
+| `:AutoSaveToggle`   | Turn autosave off / on globally                   |
+| `:AutoSaveToggle!`  | Same, for this buffer only                        |
+| `:AutoSaveNow`      | Write the way autosave does, without formatting   |
+
+`vim.g.autosave_disable` and `vim.b.autosave_disable` are the same switches.
+
 ### LSP
 
 Only useful when an LSP server is attached to the current buffer.
@@ -231,6 +283,12 @@ The right-click menu is built per buffer in `lua/config/mouse.lua`:
 The editor menu also ends with **Projects…**, **Recent Files…**, **Add This
 Project** and **Forget This Project**, so projects and recent files can be
 managed without touching the keyboard.
+
+A click on a bufferline tab always opens the file in an editor window, never in
+whatever float happens to be focused. bufferline's default is `buffer %d`, which
+runs in the current window: with the toggleterm overlay up, the file was loaded
+into the overlay, toggleterm lost track of its own window, and the next
+`<leader>t` opened a second float while the first stayed on screen for good.
 
 The dashboard is clickable too: `dashboard-nvim` ships no mouse bindings, so
 this config adds them — a click opens the recent file on that row, or runs the
@@ -363,6 +421,8 @@ file, and its project is recorded automatically.
 
 ### Git
 
+Repository-wide pickers, from `fzf-lua`:
+
 | Mode | Key          | Action           |
 | ---- | ------------ | ---------------- |
 | `n`  | `<leader>gf` | Git files        |
@@ -370,6 +430,31 @@ file, and its project is recorded automatically.
 | `n`  | `<leader>gc` | Git commits      |
 | `n`  | `<leader>gb` | Git branches     |
 | `n`  | `<leader>gh` | Git file history |
+
+Hunk-level work in the current buffer, from `gitsigns.nvim`. These are set in an
+`on_attach`, so they only exist in a buffer that belongs to a repository.
+
+| Mode   | Key          | Action                                    |
+| ------ | ------------ | ----------------------------------------- |
+| `n`    | `]c` / `[c`  | Next / previous hunk                      |
+| `n`    | `<leader>ga` | Stage hunk — again on a staged hunk unstages it |
+| `v`    | `<leader>ga` | Stage the selected lines                  |
+| `n`    | `<leader>gr` | Reset hunk                                |
+| `v`    | `<leader>gr` | Reset the selected lines                  |
+| `n`    | `<leader>gA` | Stage buffer                              |
+| `n`    | `<leader>gR` | Reset buffer                              |
+| `n`    | `<leader>gp` | Preview hunk in a float                   |
+| `n`    | `<leader>gl` | Blame the current line                    |
+| `n`    | `<leader>gB` | Toggle the inline blame annotation        |
+| `n`    | `<leader>gd` | Diff against the index                    |
+| `n`    | `<leader>gD` | Diff against the last commit              |
+| `o` `x`| `ih`         | Select the hunk under the cursor          |
+
+`]c` / `[c` keep their built-in diff-mode meaning in a window that is actually
+in diff mode, so they still work inside `<leader>gd`.
+
+The statusline's diff counts come from gitsigns rather than a separate
+`git diff`, so they include changes in a buffer that has not been written yet.
 
 ### CMake
 

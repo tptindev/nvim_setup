@@ -38,7 +38,11 @@ assert_equal(vim.o.guifont, neovide.font, "setup() should set the GUI font")
 local primary = neovide.font:match("^([^,:]+)")
 assert_equal(primary, "JetBrainsMono NFM", "the primary GUI font should be the installed Nerd Font family")
 
-assert_true(vim.g.neovide_input_ime, "IME input must stay enabled for Vietnamese/CJK typing")
+-- The IME is held off unconditionally: it intercepted keys outside actual
+-- text composition (e.g. swallowing <Esc> in a terminal buffer), and there is
+-- no mode-aware autocmd to turn it back on. `:NeovideIme` is the manual opt-in.
+assert_equal(vim.g.neovide_input_ime, false, "IME input should stay off by default")
+assert_true(vim.fn.exists(":NeovideIme") == 2, ":NeovideIme should exist to opt in manually")
 assert_true(vim.g.neovide_remember_window_size, "window size should be remembered")
 
 for _, lhs in ipairs({ "<C-=>", "<C-->", "<C-0>", "<F11>", "<C-ScrollWheelUp>", "<C-ScrollWheelDown>" }) do

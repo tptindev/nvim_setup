@@ -209,6 +209,24 @@ local function session_file(root)
     return vim.fs.joinpath(session_dir(), slug .. ".vim")
 end
 
+-- `:drop <dir>` — which is how Neovide hands over a dropped folder — puts the
+-- directory on the argument list, and Vim keeps a listed buffer alive for every
+-- arglist entry. Deleting the buffer is therefore not enough: it comes straight
+-- back, shows up as a tab with a folder icon, and `mksession` persists the entry
+-- (`$argadd <dir>`) so every later session load resurrects it.
+local function prune_directory_args()
+    local args = vim.fn.argv()
+    if type(args) ~= "table" then
+        return
+    end
+
+    for index = #args, 1, -1 do
+        if vim.fn.isdirectory(args[index]) == 1 then
+            pcall(vim.cmd, index .. "argdelete")
+        end
+    end
+end
+
 -- Floating/scratch windows and terminals do not survive :mksession cleanly, so
 -- drop them before writing and let the plugins re-create their own state.
 local function close_transient_windows()
@@ -222,8 +240,15 @@ local function close_transient_windows()
     end
 
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-        if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
-            pcall(vim.api.nvim_buf_delete, buf, { force = true })
+        if vim.api.nvim_buf_is_valid(buf) then
+            local name = vim.api.nvim_buf_get_name(buf)
+
+            -- A directory buffer is never real content — it is the husk left by
+            -- `:drop <dir>`. Written out, `mksession` records it as `badd <dir>`
+            -- and every later load brings the folder tab back.
+            if vim.bo[buf].buftype == "terminal" or (name ~= "" and vim.fn.isdirectory(name) == 1) then
+                pcall(vim.api.nvim_buf_delete, buf, { force = true })
+            end
         end
     end
 end
@@ -252,6 +277,7 @@ function M.save_session(root)
     end
 
     close_transient_windows()
+    prune_directory_args()
     mkdirp(session_dir())
 
     local target = session_file(root)
@@ -291,7 +317,16 @@ function M.delete_session(root)
     end
 end
 
+-- Neovide's drop handler (`neovide.private.dropfile`, default `tabs = true`)
+-- opens every dropped path through `nvim_cmd({cmd="drop", mods={tab=1}}, {})`,
+-- which — unlike typing `:tab drop` — skips Vim's "reuse the current window
+-- when it's the single empty one" special case and always opens a genuine new
+-- tabpage. `%bwipeout!` only clears buffers, so that extra tabpage survives a
+-- project switch as an orphaned, empty tab; `tabonly!` collapses back to one
+-- before the buffer wipe.
 local function reset_editor()
+    vim.cmd("silent! tabonly!")
+    prune_directory_args()
     vim.cmd("silent! %bwipeout!")
     vim.cmd("enew")
 end
@@ -591,7 +626,14 @@ function M.setup(opts)
                         pcall(vim.api.nvim_buf_delete, event.buf, { force = true })
                     end
 
-                    M.open(root)
+                    -- If M.open throws, `pending` must still clear — otherwise
+                    -- every directory buffer opened for the rest of the
+                    -- session skips this cleanup and sits in the buffer list
+                    -- as a real, un-deleted tab.
+                    local ok, err = pcall(M.open, root)
+                    if not ok then
+                        vim.notify("Project open failed: " .. tostring(err), vim.log.levels.ERROR)
+                    end
                     pending = false
                 end)
             end,

@@ -46,8 +46,16 @@ function M.setup()
     vim.g.neovide_padding_left = 4
     vim.g.neovide_padding_right = 0
 
-    -- Input. `input_ime` must stay on for IME-based typing (Vietnamese, CJK).
-    vim.g.neovide_input_ime = true
+    -- Input. While `neovide_input_ime` is on, keys go through the Windows IME
+    -- first, and the IME swallows <Esc> to cancel composition — so <Esc> never
+    -- reaches Neovim and the mapping that leaves a toggleterm float looks dead,
+    -- even though the mapping is there. Clicking another window appeared to fix
+    -- it only because changing focus resets the IME.
+    --
+    -- Kept off unconditionally (no mode-aware autocmd) so the IME never
+    -- intercepts keys anywhere in Neovide; use `:NeovideIme` to opt in for a
+    -- one-off Vietnamese-typing session.
+    vim.g.neovide_input_ime = false
     vim.g.neovide_hide_mouse_when_typing = true
 
     -- Rendering. Idle throttling keeps a background window from burning GPU.
@@ -84,6 +92,11 @@ function M.setup()
     end, { desc = "Neovide: zoom out" })
 
     map({ "n", "v", "i" }, "<F11>", toggle_fullscreen, { desc = "Neovide: toggle fullscreen" })
+
+    vim.api.nvim_create_user_command("NeovideIme", function()
+        vim.g.neovide_input_ime = not vim.g.neovide_input_ime
+        vim.notify("Neovide IME " .. (vim.g.neovide_input_ime and "on" or "off"))
+    end, { desc = "Toggle the Neovide IME for the current mode" })
 
     vim.api.nvim_create_user_command("NeovideZoomReset", reset_scale, { desc = "Reset the Neovide zoom level" })
     vim.api.nvim_create_user_command("NeovideFullscreen", toggle_fullscreen, { desc = "Toggle Neovide fullscreen" })
