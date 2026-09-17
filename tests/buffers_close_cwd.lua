@@ -4,7 +4,9 @@ local function assert_equal(actual, expected, message)
     end
 end
 
-local script_path = vim.fs.normalize(debug.getinfo(1, "S").source:sub(2))
+-- `nvim -l tests/foo.lua` reports a relative source path, but getcwd() is
+-- absolute, so resolve it before comparing the two.
+local script_path = vim.fs.normalize(vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p"))
 local config_root = vim.fs.dirname(vim.fs.dirname(script_path))
 local project_root = vim.fs.joinpath(config_root, "lua")
 
@@ -49,6 +51,7 @@ assert_equal(vim.bo[current_buf].buftype, "nofile", "smart quit should keep Neov
 assert_equal(vim.fs.normalize(vim.fn.getcwd()), project_root, "smart quit should keep the project cwd after closing the last editor buffer")
 
 vim.cmd("edit " .. vim.fn.fnameescape(vim.fs.joinpath(config_root, "README.md")))
+require("config.keymaps")
 vim.cmd("SmartBwipeout")
 
 local wiped_buf = vim.api.nvim_get_current_buf()

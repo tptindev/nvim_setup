@@ -1,5 +1,6 @@
 return {
     require("plugins.colorscheme"),
+    require("plugins.mini"),
     require("plugins.blink"),
     require("plugins.bufferline"),
     require("plugins.lualine"),

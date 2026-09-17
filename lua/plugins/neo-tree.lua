@@ -34,12 +34,23 @@ return {
             follow_current_file = {
                 enabled = true,
             },
-            hijack_netrw_behavior = "open_current",
+            -- config/projects.lua turns any directory buffer into "open this
+            -- project", so neo-tree must not claim them.
+            hijack_netrw_behavior = "disabled",
             use_libuv_file_watcher = true,
         },
         window = {
             position = "left",
             width = 32,
+            mappings = {
+                ["<2-LeftMouse>"] = "open",
+                -- Middle click opens in a split, like a browser opens a new tab.
+                ["<MiddleMouse>"] = "open_split",
+                -- <RightMouse> is deliberately left unmapped: 'mousemodel=popup_setpos'
+                -- only opens the context menu when the key is free. It moves the
+                -- cursor to the clicked node first, then config/mouse.lua builds
+                -- the file-manager menu for it.
+            },
         },
     },
     config = function(_, opts)

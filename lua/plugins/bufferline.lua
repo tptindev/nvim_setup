@@ -11,7 +11,16 @@ return {
         return {
             options = {
                 close_command = buffers.close,
-                right_mouse_command = buffers.close,
+                -- Middle click closes a tab, right click opens a small menu.
+                middle_mouse_command = buffers.close,
+                right_mouse_command = function(bufnr)
+                    require("config.mouse").tab_menu(bufnr)
+                end,
+                hover = {
+                    enabled = true,
+                    delay = 120,
+                    reveal = { "close" },
+                },
                 mode = "buffers",
                 always_show_bufferline = true,
                 separator_style = "slant",

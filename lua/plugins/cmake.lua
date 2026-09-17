@@ -4,10 +4,16 @@ return {
         "CMakeGenerate",
         "CMakeBuild",
         "CMakeRun",
+        "CMakeClean",
+        "CMakeRunTest",
+        "CMakeQuickStart",
+        "CMakeSelectBuildType",
         "CMakeSelectBuildTarget",
         "CMakeSelectLaunchTarget",
         "CMakeSelectConfigurePreset",
         "CMakeSelectKit",
+        "CMakeStopRunner",
+        "CMakeStopExecutor",
     },
     ft = { "c", "cpp", "cmake" },
     dependencies = {
@@ -21,7 +27,14 @@ return {
             "-DCMAKE_EXPORT_COMPILE_COMMANDS=1",
         },
         cmake_use_preset = true,
-        cmake_soft_link_compile_commands = false,
+        -- Windows cannot create compile_commands.json symlinks without admin rights.
+        -- Copy the file to cwd so clangd can discover it via root_markers.
+        cmake_compile_commands_options = {
+            action = "copy",
+            target = function()
+                return vim.fn.getcwd()
+            end,
+        },
         cmake_runner = {
             name = "toggleterm",
             opts = {

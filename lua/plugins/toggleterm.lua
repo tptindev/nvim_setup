@@ -56,6 +56,8 @@ return {
                 end
 
                 map("<Esc>", [[<C-\><C-n>]])
+                -- Right click pastes, the way a Windows terminal does.
+                map("<RightMouse>", [[<C-\><C-n>"+pi]])
                 map("<C-h>", [[<Cmd>wincmd h<CR>]])
                 map("<C-j>", [[<Cmd>wincmd j<CR>]])
                 map("<C-k>", [[<Cmd>wincmd k<CR>]])

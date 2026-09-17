@@ -1,6 +1,14 @@
 local buffers = require("config.buffers")
 buffers.setup()
 
+local projects = require("config.projects")
+projects.setup()
+
+local recent = require("config.recent")
+recent.setup()
+
+require("config.mouse").setup()
+
 local function fzf(picker, opts)
     return function()
         require("fzf-lua")[picker](opts or {})
@@ -88,9 +96,34 @@ end
 local function set_lsp_keymaps(event)
     local opts = { buffer = event.buf }
     local map = vim.keymap.set
+    local client = vim.lsp.get_client_by_id(event.data and event.data.client_id)
 
-    map("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename" }))
+    map("n", "gd", vim.lsp.buf.definition, vim.tbl_extend("force", opts, { desc = "Goto definition" }))
+    map("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Goto declaration" }))
     map("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover" }))
+    map("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename" }))
+    map("n", "<leader>la", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
+    map("n", "<leader>lf", function()
+        require("conform").format({ async = true, lsp_format = "fallback" })
+    end, vim.tbl_extend("force", opts, { desc = "Format buffer" }))
+    map("n", "[d", function()
+        vim.diagnostic.jump({ count = -1, float = true })
+    end, vim.tbl_extend("force", opts, { desc = "Previous diagnostic" }))
+    map("n", "]d", function()
+        vim.diagnostic.jump({ count = 1, float = true })
+    end, vim.tbl_extend("force", opts, { desc = "Next diagnostic" }))
+    map("n", "<leader>ln", function()
+        local bufnr = event.buf
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
+    end, vim.tbl_extend("force", opts, { desc = "Toggle inlay hints" }))
+
+    if client and client.name == "clangd" then
+        map("n", "<leader>lh", "<cmd>LspClangdSwitchSourceHeader<CR>", vim.tbl_extend("force", opts, { desc = "Switch source/header" }))
+    end
+
+    if client and client.name == "clangd" and client.server_capabilities.inlayHintProvider then
+        vim.lsp.inlay_hint.enable(true, { bufnr = event.buf })
+    end
 end
 
 local map = vim.keymap.set
@@ -99,6 +132,13 @@ map({ "n", "v" }, "<Up>", "gk", { desc = "Move up a screenline" })
 map({ "n", "v" }, "<Down>", "gj", { desc = "Move down a screenline" })
 map("i", "<Up>", "<C-o>gk", { desc = "Move up a screenline" })
 map("i", "<Down>", "<C-o>gj", { desc = "Move down a screenline" })
+-- Move line(s) up/down with Alt+j / Alt+k
+map("n", "<A-j>", "<cmd>m .+1<CR>==", { desc = "Move line down" })
+map("n", "<A-k>", "<cmd>m .-2<CR>==", { desc = "Move line up" })
+map("i", "<A-j>", "<Esc><cmd>m .+1<CR>==gi", { desc = "Move line down" })
+map("i", "<A-k>", "<Esc><cmd>m .-2<CR>==gi", { desc = "Move line up" })
+map("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
+map("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 -- Append/prepend empty line without leaving normal mode
 map('n', 'O', "O<Esc>", { desc = "Append empty line" })
 map('n', 'o', "o<Esc>", { desc = "Prepend empty line" })
@@ -118,6 +158,7 @@ map("n", "<leader>fg", fzf("live_grep"), { desc = "Live grep" })
 map("n", "<leader>fw", fzf("grep_cword"), { desc = "Grep current word" })
 map("n", "<leader>fb", fzf("buffers"), { desc = "Find buffers" })
 map("n", "<leader>fo", fzf("oldfiles"), { desc = "Find old files" })
+map("n", "<leader>fr", recent.panel, { desc = "Recent files panel (mouse)" })
 map("n", "<leader>fh", fzf("help_tags"), { desc = "Help tags" })
 map("n", "<leader>fk", fzf("keymaps"), { desc = "Find keymaps" })
 map("n", "<leader>fc", open_config_file("docs/cheatsheet.md"), { desc = "Open cheatsheet" })
@@ -168,6 +209,37 @@ map("n", "<leader>lS", fzf("lsp_live_workspace_symbols"), { desc = "Workspace sy
 map("n", "<leader>lx", fzf("diagnostics_document"), { desc = "Document diagnostics" })
 map("n", "<leader>lq", fzf("quickfix"), { desc = "Quickfix list" })
 
+-- Windows-style clipboard, limited to the modes where it costs nothing.
+-- Normal mode is untouched, so <C-v> is still visual block.
+map("x", "<C-c>", '"+y', { desc = "Copy selection" })
+map("x", "<C-x>", '"+d', { desc = "Cut selection" })
+map("x", "<C-v>", '"+P', { desc = "Paste over selection" })
+-- <C-r><C-o>+ pastes verbatim, without re-indenting the pasted lines.
+map("i", "<C-v>", "<C-r><C-o>+", { desc = "Paste" })
+map("c", "<C-v>", "<C-r>+", { desc = "Paste" })
+-- <C-q> keeps the literal-insert that <C-v> used to provide.
+map("i", "<C-q>", "<C-v>", { desc = "Insert literal character" })
+map("t", "<C-v>", '<C-\\><C-n>"+pi', { desc = "Paste into terminal" })
+
+-- Mouse: IDE-style navigation on top of what 'mouse' already provides.
+map("n", "<C-LeftMouse>", "<LeftMouse><Cmd>lua vim.lsp.buf.definition()<CR>", { desc = "Goto definition" })
+map("n", "<C-RightMouse>", "<C-o>", { desc = "Jump back" })
+-- Side buttons on a mouse walk the jump list, like Back/Forward in a browser.
+map("n", "<X1Mouse>", "<C-o>", { desc = "Jump back" })
+map("n", "<X2Mouse>", "<C-i>", { desc = "Jump forward" })
+
+-- Project management
+map("n", "<leader>pp", projects.pick, { desc = "Open project" })
+map("n", "<leader>pm", projects.panel, { desc = "Project panel (mouse)" })
+map("n", "<leader>pa", "<cmd>ProjectAdd<CR>", { desc = "Add current project" })
+map("n", "<leader>pd", "<cmd>ProjectRemove<CR>", { desc = "Remove current project" })
+map("n", "<leader>pr", "<cmd>ProjectRoot<CR>", { desc = "cd to project root" })
+map("n", "<leader>pf", projects.in_root("files"), { desc = "Find files in project root" })
+map("n", "<leader>pg", projects.in_root("live_grep"), { desc = "Grep in project root" })
+map("n", "<leader>ps", "<cmd>ProjectSessionSave<CR>", { desc = "Save project session" })
+map("n", "<leader>pl", "<cmd>ProjectSessionLoad<CR>", { desc = "Load project session" })
+map("n", "<leader>pD", "<cmd>ProjectSessionDelete<CR>", { desc = "Delete project session" })
+
 map("n", "<leader>gf", fzf("git_files"), { desc = "Git files" })
 map("n", "<leader>gs", fzf("git_status"), { desc = "Git status" })
 map("n", "<leader>gc", fzf("git_commits"), { desc = "Git commits" })
@@ -180,6 +252,11 @@ map("n", "<leader>cr", cmake("CMakeRun"), { desc = "CMake run" })
 map("n", "<leader>ct", cmake("CMakeSelectBuildTarget"), { desc = "CMake build target" })
 map("n", "<leader>cs", cmake("CMakeSelectLaunchTarget"), { desc = "CMake launch target" })
 map("n", "<leader>cp", cmake("CMakeSelectConfigurePreset", "CMakeSelectKit"), { desc = "CMake preset or kit" })
+map("n", "<leader>cv", cmake("CMakeSelectBuildType"), { desc = "CMake build type" })
+map("n", "<leader>ck", cmake("CMakeClean"), { desc = "CMake clean" })
+map("n", "<leader>cT", cmake("CMakeRunTest"), { desc = "CMake run tests" })
+map("n", "<leader>cq", cmake("CMakeStopRunner", "CMakeStopExecutor"), { desc = "CMake stop" })
+map("n", "<leader>cn", cmake("CMakeQuickStart"), { desc = "CMake new project" })
 
 map("n", "<Leader>;", function()
     require("dropbar.api").pick()
@@ -194,6 +271,11 @@ map("n", "];", function()
 end, { desc = "Select next context" })
 
 map("n", "sn", function()
+    if not _G.MiniSurround then
+        vim.notify("mini.surround is not loaded", vim.log.levels.WARN)
+        return
+    end
+
     MiniSurround.update_n_lines()
 end, { desc = "Update surround search lines" })
 

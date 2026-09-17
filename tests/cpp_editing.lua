@@ -64,6 +64,20 @@ package.loaded["blink.cmp"] = original_blink
 
 assert_truthy(type(mason_setup_opts) == "table", "expected mason-lspconfig.setup to be called")
 assert_truthy(vim.tbl_contains(mason_setup_opts.ensure_installed, "clangd"), "expected clangd to stay installed")
+assert_truthy(vim.tbl_contains(mason_setup_opts.ensure_installed, "glsl_analyzer"), "expected glsl_analyzer to stay installed")
 assert_equal(configured_servers.clangd.single_file_support, true, "expected clangd to support standalone new C++ files")
+assert_equal(configured_servers.clangd.workspace_required, false, "expected clangd to start without a project root")
+assert_truthy(vim.tbl_contains(configured_servers.clangd.cmd, "--clang-tidy"), "expected clangd to enable clang-tidy")
+assert_truthy(vim.tbl_contains(configured_servers.clangd.cmd, "--query-driver=**"), "expected clangd to accept compiler drivers on Windows")
+assert_equal(configured_servers.clangd.on_new_config, nil, "expected clangd to avoid the obsolete on_new_config hook")
+assert_truthy(configured_servers.glsl_analyzer ~= nil, "expected glsl_analyzer to be configured")
+assert_equal(configured_servers.glsl_analyzer.single_file_support, true, "expected glsl_analyzer to support standalone shader files")
+
+local cmake_spec = require("plugins.cmake")
+assert_equal(cmake_spec.opts.cmake_compile_commands_options.action, "copy", "expected CMake to copy compile_commands.json on Windows")
+
+local conform_spec = require("plugins.conform")
+assert_truthy(vim.tbl_contains(conform_spec.opts.formatters_by_ft.c, "clang-format"), "expected C files to format with clang-format")
+assert_truthy(vim.tbl_contains(conform_spec.opts.formatters_by_ft.cpp, "clang-format"), "expected C++ files to format with clang-format")
 
 vim.cmd("qa!")

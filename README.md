@@ -15,7 +15,10 @@ This repo uses `lazy.nvim` for plugin management and keeps the configuration spl
 - `toggleterm.nvim` for a floating terminal
 - `cmake-tools.nvim` shortcuts for configure, build, run, and target selection
 - `which-key.nvim` for discoverable leader mappings
-- `dashboard-nvim` with shortcuts for files, projects, settings, and recent work
+- `dashboard-nvim` with shortcuts for files, projects, sessions, settings, and recent work
+- A built-in project manager (`lua/config/projects.lua`): root detection, a recent-project list, and one session per project
+- Full mouse support (`lua/config/mouse.lua`): context menus for the editor, the file explorer, the buffer tabline and the panels
+- Clickable project and recent-file panels (`lua/config/panel.lua`), with native Windows picker dialogs
 - `screenkey.nvim` available on demand through a manual toggle
 
 ## Workflow
@@ -26,6 +29,8 @@ This configuration is built around a few main ideas:
 - A persistent project sidebar with `neo-tree`
 - IDE-style language support through LSP and completion
 - Smooth terminal and build integration for CMake projects
+- Project-scoped work: `<leader>pp` switches projects and restores that project's session
+- Everything reachable with the mouse: right-click menus, a clickable project panel, drag a folder onto Neovide to open it as a project
 - Discoverable keymaps with both `which-key` and a dedicated cheatsheet
 
 ## Default Behavior
@@ -39,17 +44,30 @@ Some notable editor defaults in this repo:
 - Persistent undo is enabled
 - Search is case-insensitive unless uppercase is used
 - Clipboard uses `unnamedplus`
-- Spell checking is enabled with `en_us`
-- Neovide uses `JetBrainsMono Nerd Font`
+- Spell checking is limited to prose filetypes (markdown, text, gitcommit, help)
+- Folding uses Treesitter for C/C++/CMake/GLSL/Lua and starts fully unfolded
+- Neovide uses `JetBrainsMono NFM` with zoom, fullscreen and IME support (`lua/config/neovide.lua`)
 - Common GLSL-related extensions are mapped to the `glsl` filetype
+- The mouse is enabled in every mode, with a context-aware right-click menu
+- `<C-c>` / `<C-x>` / `<C-v>` work in visual mode; normal-mode `<C-v>` is still visual block
+- `netrw` is disabled: opening a directory opens it as a project instead
 
 ## Language Support
 
 The current LSP setup ensures these servers are installed and enabled:
 
-- `clangd`
-- `lua_ls`
-- `glsl_analyzer`
+- `clangd` — C and C++
+- `neocmake` — CMake
+- `glsl_analyzer` — GLSL shaders
+- `lua_ls` — Lua
+
+Formatting is handled by `conform.nvim` on save: `clang-format` for C/C++ and
+GLSL, `stylua` for Lua, and `cmake-format` for CMake. Use `:FormatToggle` to
+turn format-on-save off.
+
+`mason-tool-installer` also installs the `tree-sitter` CLI, which
+`nvim-treesitter` needs to compile parsers. If a parser is missing, run
+`:TSEnsure`.
 
 This makes the repo especially suitable for:
 
@@ -69,6 +87,7 @@ Useful examples:
 - `<leader>e` to toggle the file explorer
 - `<leader>t` to open the floating terminal
 - `<leader>cc` / `<leader>cb` / `<leader>cr` for CMake configure, build, and run
+- `<leader>pp` to switch projects, `<leader>pr` to `cd` to the current project root
 - `<leader>?` to show buffer-local mappings with `which-key`
 
 For a fuller list, see [docs/cheatsheet.md](docs/cheatsheet.md).
@@ -83,9 +102,11 @@ For a fuller list, see [docs/cheatsheet.md](docs/cheatsheet.md).
 |   `-- cheatsheet.md
 `-- lua/
     |-- config/
+    |   |-- buffers.lua
     |   |-- keymaps.lua
     |   |-- lazy.lua
-    |   `-- options.lua
+    |   |-- options.lua
+    |   `-- projects.lua
     `-- plugins/
 ```
 
