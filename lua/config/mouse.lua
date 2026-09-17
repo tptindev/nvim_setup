@@ -407,6 +407,220 @@ function M.tab_menu(bufnr)
     end)
 end
 
+--- Pointer affordances -------------------------------------------------------
+
+-- VSCode-style pointer behaviour: resting on a symbol shows its documentation,
+-- Ctrl+click jumps to its definition.
+--
+-- `mousemoveevent` (options.lua) turns pointer motion into `<MouseMove>` keys.
+-- bufferline already maps that key for its own tab hover and re-emits it from
+-- an `<expr>` mapping, and a plain re-map is not run again, so whoever maps it
+-- last owns the key. This chains onto the handler already bound instead of
+-- replacing it, and installs after `VeryLazy` so bufferline is bound first.
+
+local hover = {
+    delay = 350,
+    -- Bumped on every pointer move so a stale timer cannot fire late.
+    token = 0,
+    win = nil,
+    -- Buffer cells the open float describes, so drifting within the symbol
+    -- keeps it up instead of flickering it shut and open again.
+    range = nil,
+}
+
+local function hover_close()
+    if hover.win and vim.api.nvim_win_is_valid(hover.win) then
+        pcall(vim.api.nvim_win_close, hover.win, true)
+    end
+
+    hover.win = nil
+    hover.range = nil
+end
+
+---@param text string
+---@param byte_col integer 0-based byte offset
+---@param encoding string
+---@return integer
+local function utf_character(text, byte_col, encoding)
+    local ok, index = pcall(vim.str_utfindex, text, encoding, byte_col, false)
+    return ok and index or byte_col
+end
+
+---The hover range as 1-based inclusive columns, or nil when the server gave no
+---range, gave a multi-line one, or the offsets do not convert.
+---@return table|nil
+local function range_cells(buf, winid, range, encoding)
+    if not range or not range.start or range.start.line ~= range["end"].line then
+        return nil
+    end
+
+    local lnum = range.start.line + 1
+    local text = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
+    if not text then
+        return nil
+    end
+
+    local ok_from, from = pcall(vim.str_byteindex, text, encoding, range.start.character, false)
+    local ok_to, to = pcall(vim.str_byteindex, text, encoding, range["end"].character, false)
+
+    if not (ok_from and ok_to) then
+        return nil
+    end
+
+    return { winid = winid, line = lnum, from = from + 1, to = to }
+end
+
+---@param pos table result of `getmousepos()`
+local function hover_show(pos)
+    if vim.fn.pumvisible() == 1 or not vim.api.nvim_win_is_valid(pos.winid) then
+        return
+    end
+
+    local buf = vim.api.nvim_win_get_buf(pos.winid)
+    if vim.bo[buf].buftype ~= "" then
+        return
+    end
+
+    local client = vim.lsp.get_clients({ bufnr = buf, method = "textDocument/hover" })[1]
+    if not client then
+        return
+    end
+
+    local text = vim.api.nvim_buf_get_lines(buf, pos.line - 1, pos.line, false)[1]
+    if not text or text == "" then
+        return
+    end
+
+    -- Past the end of the line the pointer is in the margin, and whitespace
+    -- never has documentation — asking anyway just flashes an empty popup.
+    local byte_col = pos.column - 1
+    if byte_col >= #text or text:sub(pos.column, pos.column):match("%s") then
+        return
+    end
+
+    local encoding = client.offset_encoding or "utf-16"
+
+    client:request("textDocument/hover", {
+        textDocument = vim.lsp.util.make_text_document_params(buf),
+        position = { line = pos.line - 1, character = utf_character(text, byte_col, encoding) },
+    }, function(err, result)
+        if err or not result or not result.contents then
+            return
+        end
+
+        local lines = vim.lsp.util.convert_input_to_markdown_lines(result.contents)
+        if vim.tbl_isempty(lines) then
+            return
+        end
+
+        -- The server answers asynchronously; the pointer may have moved on,
+        -- and anchoring to `mouse` would then place the float somewhere else.
+        local ok, current = pcall(vim.fn.getmousepos)
+        if not ok or current.winid ~= pos.winid or current.line ~= pos.line or current.column ~= pos.column then
+            return
+        end
+
+        hover_close()
+
+        local _, win = vim.lsp.util.open_floating_preview(lines, "markdown", {
+            relative = "mouse",
+            border = "rounded",
+            max_width = 80,
+            max_height = 20,
+            focus = false,
+        })
+
+        hover.win = win
+        hover.range = range_cells(buf, pos.winid, result.range, encoding)
+    end, buf)
+end
+
+local function hover_on_move()
+    local ok, pos = pcall(vim.fn.getmousepos)
+    if not ok then
+        return
+    end
+
+    -- Let the pointer rest inside the popup — moving into it to scroll must not
+    -- tear it down — and drift within the symbol it describes.
+    if hover.win and pos.winid == hover.win then
+        return
+    end
+
+    local range = hover.range
+    if
+        range
+        and range.winid == pos.winid
+        and range.line == pos.line
+        and pos.column >= range.from
+        and pos.column <= range.to
+    then
+        return
+    end
+
+    hover_close()
+
+    hover.token = hover.token + 1
+    local token = hover.token
+
+    vim.defer_fn(function()
+        if token == hover.token then
+            hover_show(pos)
+        end
+    end, hover.delay)
+end
+
+local hover_installed = false
+
+---Bind `<MouseMove>` for hover docs, chaining onto any existing handler.
+function M.enable_hover()
+    -- A second call would capture this very mapping as the one to forward to
+    -- and recurse forever.
+    if hover_installed then
+        return
+    end
+
+    hover_installed = true
+
+    local existing = vim.fn.maparg("<MouseMove>", "n", false, true)
+    local forward = type(existing) == "table" and existing.callback or nil
+
+    vim.keymap.set({ "n", "i" }, "<MouseMove>", function()
+        if forward then
+            pcall(forward)
+        end
+
+        hover_on_move()
+
+        return "<MouseMove>"
+    end, { expr = true, desc = "LSP hover under the pointer" })
+end
+
+---Jump to the definition of whatever the pointer is over.
+function M.goto_definition_at_mouse()
+    local ok, pos = pcall(vim.fn.getmousepos)
+    if not ok or pos.winid == 0 or not vim.api.nvim_win_is_valid(pos.winid) then
+        return
+    end
+
+    hover_close()
+
+    vim.api.nvim_set_current_win(pos.winid)
+    pcall(vim.api.nvim_win_set_cursor, pos.winid, { pos.line, math.max(0, pos.column - 1) })
+
+    -- Land in normal mode: the point of the jump is to read the definition.
+    if vim.fn.mode():match("^i") then
+        vim.cmd("stopinsert")
+    end
+
+    if not has_lsp() then
+        notify("No language server for this buffer", vim.log.levels.WARN)
+        return
+    end
+
+    vim.lsp.buf.definition()
+end
+
 --- Setup ---------------------------------------------------------------------
 
 local is_setup = false
@@ -422,8 +636,23 @@ function M.setup()
     -- replaces, which would error on every right-click. Drop it.
     pcall(vim.api.nvim_clear_autocmds, { group = "nvim.popupmenu" })
 
+    local group = vim.api.nvim_create_augroup("MouseContextMenu", { clear = true })
+
+    -- Bind hover on the first `LspAttach` rather than at startup: bufferline
+    -- claims `<MouseMove>` when it loads on `VeryLazy`, and whoever binds last
+    -- owns the key, so waiting for an LSP puts this after it without depending
+    -- on plugin load order. Nothing to hover before a server attaches anyway.
+    vim.api.nvim_create_autocmd("LspAttach", {
+        group = group,
+        once = true,
+        desc = "Bind pointer hover once a language server is available",
+        callback = function()
+            M.enable_hover()
+        end,
+    })
+
     vim.api.nvim_create_autocmd("MenuPopup", {
-        group = vim.api.nvim_create_augroup("MouseContextMenu", { clear = true }),
+        group = group,
         pattern = "*",
         desc = "Build the right-click menu for the current buffer",
         callback = function()

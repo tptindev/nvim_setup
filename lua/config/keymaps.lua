@@ -100,8 +100,23 @@ local function set_lsp_keymaps(event)
     local map = vim.keymap.set
     local client = vim.lsp.get_client_by_id(event.data and event.data.client_id)
 
-    map("n", "gd", vim.lsp.buf.definition, vim.tbl_extend("force", opts, { desc = "Goto definition" }))
-    map("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Goto declaration" }))
+    -- `vim.lsp.buf.definition()` and friends dump anything past a single result
+    -- into the quickfix list and force it open with `botright copen`
+    -- (runtime/lua/vim/lsp/buf.lua), which drops an unasked-for split at the
+    -- bottom that has to be closed by hand. The fzf pickers show the same
+    -- results in a previewable float instead, and their `jump1` default still
+    -- jumps straight through when there is only one result. `grr`/`gri`/`grt`/
+    -- `gO` are Neovim's own global defaults; a buffer-local mapping wins.
+    local function goto_map(lhs, picker, desc)
+        map("n", lhs, fzf(picker), vim.tbl_extend("force", opts, { desc = desc }))
+    end
+
+    goto_map("gd", "lsp_definitions", "Goto definition")
+    goto_map("gD", "lsp_declarations", "Goto declaration")
+    goto_map("grr", "lsp_references", "References")
+    goto_map("gri", "lsp_implementations", "Implementations")
+    goto_map("grt", "lsp_typedefs", "Type definitions")
+    goto_map("gO", "lsp_document_symbols", "Document symbols")
     map("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover" }))
     map("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename" }))
     map("n", "<leader>la", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
@@ -220,6 +235,12 @@ map("n", "<leader>lS", fzf("lsp_live_workspace_symbols"), { desc = "Workspace sy
 map("n", "<leader>lx", fzf("diagnostics_document"), { desc = "Document diagnostics" })
 map("n", "<leader>lq", fzf("quickfix"), { desc = "Quickfix list" })
 
+-- The quickfix window can still be opened by something else (fzf's `alt-q`,
+-- `:grep`, a build), so keep one key to walk it and one to make it go away.
+map("n", "]q", "<Cmd>silent! cnext<CR>", { desc = "Next quickfix entry" })
+map("n", "[q", "<Cmd>silent! cprevious<CR>", { desc = "Previous quickfix entry" })
+map("n", "<leader>lc", "<Cmd>cclose<CR>", { desc = "Close the quickfix window" })
+
 -- Windows-style clipboard, limited to the modes where it costs nothing.
 -- Normal mode is untouched, so <C-v> is still visual block.
 map("x", "<C-c>", '"+y', { desc = "Copy selection" })
@@ -233,7 +254,12 @@ map("i", "<C-q>", "<C-v>", { desc = "Insert literal character" })
 map("t", "<C-v>", '<C-\\><C-n>"+pi', { desc = "Paste into terminal" })
 
 -- Mouse: IDE-style navigation on top of what 'mouse' already provides.
-map("n", "<C-LeftMouse>", "<LeftMouse><Cmd>lua vim.lsp.buf.definition()<CR>", { desc = "Goto definition" })
+-- Routed through config/mouse.lua so it also works from insert mode, closes an
+-- open hover popup, and says so when the buffer has no language server instead
+-- of failing silently.
+map({ "n", "i" }, "<C-LeftMouse>", function()
+    require("config.mouse").goto_definition_at_mouse()
+end, { desc = "Goto definition under the pointer" })
 map("n", "<C-RightMouse>", "<C-o>", { desc = "Jump back" })
 -- Side buttons on a mouse walk the jump list, like Back/Forward in a browser.
 map("n", "<X1Mouse>", "<C-o>", { desc = "Jump back" })
