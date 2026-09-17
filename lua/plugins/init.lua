@@ -5,6 +5,7 @@ return {
     require("plugins.bufferline"),
     require("plugins.lualine"),
     require("plugins.fzf"),
+    require("plugins.flash"),
     require("plugins.fine_cmdline"),
     require("plugins.indent_blankline"),
     require("plugins.treesitter"),

@@ -164,6 +164,15 @@ map("n", "<leader>fr", recent.panel, { desc = "Recent files panel (mouse)" })
 map("n", "<leader>fh", fzf("help_tags"), { desc = "Help tags" })
 map("n", "<leader>fk", fzf("keymaps"), { desc = "Find keymaps" })
 map("n", "<leader>fc", open_config_file("docs/cheatsheet.md"), { desc = "Open cheatsheet" })
+-- Flash: label every on-screen match for the typed chars and jump there.
+-- `s`/`S` are bare keys, unlike mini.surround's two-letter `sa`/`sd`/`sr`/etc,
+-- so they only collide on the disambiguation timeout, not the mapping itself.
+map({ "n", "x", "o" }, "s", function()
+    require("flash").jump()
+end, { desc = "Flash jump" })
+map({ "n", "x", "o" }, "S", function()
+    require("flash").treesitter()
+end, { desc = "Flash treesitter jump" })
 map({ "n", "i" }, "<C-Tab>", "<Cmd>BufferLineCycleNext<CR>", { desc = "Next buffer tab" })
 map({ "n", "i" }, "<C-S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", { desc = "Previous buffer tab" })
 map("n", "<leader>w", smart_write(false), { desc = "Write current buffer" })

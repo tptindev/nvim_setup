@@ -52,30 +52,11 @@ function M.setup()
     -- even though the mapping is there. Clicking another window appeared to fix
     -- it only because changing focus resets the IME.
     --
-    -- So the IME is on only where text is actually composed. A shell takes
-    -- ASCII, so terminal mode counts as "off" and <Esc> gets through; use
-    -- `:NeovideIme` when a terminal really does need Vietnamese input.
+    -- Kept off unconditionally (no mode-aware autocmd) so the IME never
+    -- intercepts keys anywhere in Neovide; use `:NeovideIme` to opt in for a
+    -- one-off Vietnamese-typing session.
     vim.g.neovide_input_ime = false
     vim.g.neovide_hide_mouse_when_typing = true
-
-    local ime = vim.api.nvim_create_augroup("neovide_ime", { clear = true })
-
-    vim.api.nvim_create_autocmd({ "InsertEnter", "CmdlineEnter" }, {
-        group = ime,
-        desc = "Neovide: hand keys to the IME while composing text",
-        callback = function()
-            vim.g.neovide_input_ime = true
-        end,
-    })
-
-    -- `TermEnter` is terminal mode, which Neovim does not report as insert.
-    vim.api.nvim_create_autocmd({ "InsertLeave", "CmdlineLeave", "TermEnter" }, {
-        group = ime,
-        desc = "Neovide: take keys back from the IME so <Esc> arrives",
-        callback = function()
-            vim.g.neovide_input_ime = false
-        end,
-    })
 
     -- Rendering. Idle throttling keeps a background window from burning GPU.
     vim.g.neovide_refresh_rate = 60
