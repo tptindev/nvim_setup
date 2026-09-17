@@ -7,6 +7,8 @@ projects.setup()
 local recent = require("config.recent")
 recent.setup()
 
+require("config.media").setup()
+require("config.autosave").setup()
 require("config.mouse").setup()
 
 local function fzf(picker, opts)

@@ -15,6 +15,7 @@ return {
     require("plugins.lspconfig"),
     require("plugins.conform"),
     require("plugins.cmake"),
+    require("plugins.gitsigns"),
     require("plugins.dropbar"),
     require("plugins.neo-tree"),
     require("plugins.render_md"),

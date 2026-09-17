@@ -12,6 +12,7 @@ return {
             { "<leader>f", group = "Find" },
             { "<leader>fr", desc = "Recent files panel" },
             { "<leader>g", group = "Git" },
+            { "<leader>gB", desc = "Toggle line blame" },
             { "<leader>l", group = "LSP" },
             { "<leader>la", desc = "Code action" },
             { "<leader>lf", desc = "Format buffer" },

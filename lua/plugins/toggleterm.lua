@@ -14,8 +14,20 @@ return {
             "<cmd>ToggleTerm<cr>",
             desc = "Toggle Terminal",
         },
+        -- `open_mapping` below only exists once toggleterm has run `setup()`,
+        -- so the same key has to be able to trigger the lazy load itself.
+        {
+            [[<C-\>]],
+            "<cmd>ToggleTerm<cr>",
+            mode = { "n", "i" },
+            desc = "Toggle Terminal",
+        },
     },
     opts = {
+        -- `<leader>t` is normal mode only, so leaving the terminal meant
+        -- `<Esc>` first. `insert_mappings`/`terminal_mappings` below make
+        -- this one work from inside the terminal too, in a single key.
+        open_mapping = [[<C-\>]],
         direction = "float",
         hide_numbers = true,
         shade_terminals = true,
