@@ -1,3 +1,7 @@
+local function ruff_available()
+    return vim.fn.executable("ruff") == 1
+end
+
 return {
     "stevearc/conform.nvim",
     event = { "BufReadPre", "BufNewFile" },
@@ -17,6 +21,12 @@ return {
                     return vim.fn.executable("cmake-format") == 1
                 end,
             },
+            -- `ruff` arrives with the ruff language server (mason-lspconfig's
+            -- ensure_installed); until that install finishes, skip rather than
+            -- erroring on every Python save.
+            ruff_fix = { condition = ruff_available },
+            ruff_format = { condition = ruff_available },
+            ruff_organize_imports = { condition = ruff_available },
         },
         formatters_by_ft = {
             lua = { "stylua" },
@@ -24,6 +34,9 @@ return {
             cpp = { "clang-format" },
             glsl = { "clang_format_glsl" },
             cmake = { "cmake_format" },
+            -- Order matters: lint fixes and import sorting rewrite code, the
+            -- formatter then lays out the result.
+            python = { "ruff_fix", "ruff_organize_imports", "ruff_format" },
         },
         default_format_opts = {
             lsp_format = "fallback",
@@ -40,6 +53,7 @@ return {
                 cpp = true,
                 glsl = true,
                 cmake = true,
+                python = true,
             }
 
             if not supported[vim.bo[bufnr].filetype] then

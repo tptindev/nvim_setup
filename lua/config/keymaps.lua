@@ -11,6 +11,9 @@ require("config.media").setup()
 require("config.autosave").setup()
 require("config.mouse").setup()
 
+local cpp = require("config.cpp")
+cpp.setup()
+
 local function fzf(picker, opts)
     return function()
         require("fzf-lua")[picker](opts or {})
@@ -43,6 +46,40 @@ local function cmake(command, fallback)
 
         vim.notify("CMake command is not available: " .. command, vim.log.levels.WARN)
     end
+end
+
+-- multicursor.nvim flushes the pending typeahead through `feedkeys()` while it
+-- is placing a cursor (`cursor-manager.lua`, `cursorWrite`), so a `<C-d>`
+-- pressed before the previous one finished runs *inside* that action.
+-- `core.action` raises "An action is already being performed" from there, which
+-- reaches the user as a stack trace and a press-ENTER prompt, and the cursor
+-- being added is lost with it -- holding the key was enough to trigger it.
+-- Dropping the extra press is what a keystroke arriving faster than the editor
+-- would do anyway. `performingAction` is not on the module's public table, so
+-- the flag has to be read off `multicursor-nvim.core` directly.
+local function multicursor_busy()
+    return require("multicursor-nvim.core").performingAction == true
+end
+
+local function multicursor(action, direction)
+    return function()
+        if multicursor_busy() then
+            return
+        end
+
+        require("multicursor-nvim")[action](direction)
+    end
+end
+
+local function select_word_under_cursor()
+    if multicursor_busy() then
+        return
+    end
+
+    -- VS Code's first Ctrl+D only selects the word; the second one starts
+    -- adding cursors, which is what the visual-mode mapping does. `viw` errors
+    -- on an empty line, where there is no word to select.
+    pcall(vim.cmd.normal, { "viw", bang = true })
 end
 
 local function open_config_file(path)
@@ -188,6 +225,34 @@ end, { desc = "Flash jump" })
 map({ "n", "x", "o" }, "S", function()
     require("flash").treesitter()
 end, { desc = "Flash treesitter jump" })
+-- Multiple cursors, VS Code style: `<C-d>` selects the word under the cursor,
+-- and pressing it again from that selection adds a cursor at the next
+-- occurrence. This takes the built-in half-page scroll off normal-mode
+-- `<C-d>`; `<C-f>`/`<C-b>` and `<C-e>`/`<C-y>` still scroll. The dashboard's
+-- own `<C-d>` is buffer-local, so forgetting a recent file still works there.
+map("n", "<C-d>", select_word_under_cursor, { desc = "Select word under cursor" })
+map("x", "<C-d>", multicursor("matchAddCursor", 1), { desc = "Add cursor at next match" })
+map({ "n", "x" }, "<C-S-d>", multicursor("matchSkipCursor", 1), { desc = "Skip to next match" })
+map({ "n", "x" }, "<C-S-l>", multicursor("matchAllAddCursors"), { desc = "Add a cursor at every match" })
+map({ "n", "x" }, "<C-M-Up>", multicursor("lineAddCursor", -1), { desc = "Add cursor above" })
+map({ "n", "x" }, "<C-M-Down>", multicursor("lineAddCursor", 1), { desc = "Add cursor below" })
+-- Alt+click adds and removes cursors the way VS Code does. Ctrl+click is
+-- already go-to-definition (config/mouse.lua), so the modifier has to differ.
+map("n", "<M-LeftMouse>", multicursor("handleMouse"), { desc = "Add cursor at pointer" })
+map("n", "<M-LeftDrag>", multicursor("handleMouseDrag"), { desc = "Drag a cursor selection" })
+map("n", "<M-LeftRelease>", multicursor("handleMouseRelease"), { desc = "Finish cursor selection" })
+-- Shift and Alt combinations only reach Neovim from a GUI (Neovide) or a
+-- terminal speaking the kitty keyboard protocol, so every action above also
+-- has a `<leader>m` mapping that works in a plain terminal.
+map({ "n", "x" }, "<leader>md", multicursor("matchAddCursor", 1), { desc = "Add cursor at next match" })
+map({ "n", "x" }, "<leader>mD", multicursor("matchAddCursor", -1), { desc = "Add cursor at previous match" })
+map({ "n", "x" }, "<leader>ms", multicursor("matchSkipCursor", 1), { desc = "Skip to next match" })
+map({ "n", "x" }, "<leader>mS", multicursor("matchSkipCursor", -1), { desc = "Skip to previous match" })
+map({ "n", "x" }, "<leader>ma", multicursor("matchAllAddCursors"), { desc = "Add a cursor at every match" })
+map({ "n", "x" }, "<leader>mj", multicursor("lineAddCursor", 1), { desc = "Add cursor below" })
+map({ "n", "x" }, "<leader>mk", multicursor("lineAddCursor", -1), { desc = "Add cursor above" })
+map({ "n", "x" }, "<leader>mt", multicursor("toggleCursor"), { desc = "Toggle a cursor here" })
+map("n", "<leader>mr", multicursor("restoreCursors"), { desc = "Restore cleared cursors" })
 map({ "n", "i" }, "<C-Tab>", "<Cmd>BufferLineCycleNext<CR>", { desc = "Next buffer tab" })
 map({ "n", "i" }, "<C-S-Tab>", "<Cmd>BufferLineCyclePrev<CR>", { desc = "Previous buffer tab" })
 map("n", "<leader>w", smart_write(false), { desc = "Write current buffer" })
@@ -318,4 +383,35 @@ end, { desc = "Update surround search lines" })
 
 vim.api.nvim_create_autocmd("LspAttach", {
     callback = set_lsp_keymaps,
+})
+
+-- config/cpp.lua works off the Treesitter tree, not off a language server, so
+-- these hang off the filetype rather than off `LspAttach` -- they work in a
+-- header clangd has never heard of. The visual-mode mapping goes through the
+-- command so the `'<,'>` range reaches it.
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = { "c", "cpp", "objc", "objcpp", "cuda" },
+    callback = function(event)
+        local opts = { buffer = event.buf }
+
+        map("n", "<leader>lo", cpp.implement, vim.tbl_extend("force", opts, { desc = "Define function" }))
+        map(
+            "x",
+            "<leader>lo",
+            ":CppImplement<CR>",
+            vim.tbl_extend("force", opts, { desc = "Define selected functions" })
+        )
+        map(
+            "n",
+            "<leader>lO",
+            cpp.implement_all,
+            vim.tbl_extend("force", opts, { desc = "Define every missing function" })
+        )
+        map(
+            "n",
+            "<leader>le",
+            cpp.change_signature,
+            vim.tbl_extend("force", opts, { desc = "Change function signature" })
+        )
+    end,
 })

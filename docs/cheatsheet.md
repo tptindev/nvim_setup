@@ -12,12 +12,12 @@ These are not keymaps, but they strongly affect day-to-day editing behavior.
 | Option / Behavior            | Value / Effect                                      |
 | ---------------------------- | --------------------------------------------------- |
 | Line numbers                 | Absolute in normal mode, relative outside insert    |
-| Cursor guides                | `cursorline`, `cursorlineopt=screenline`, `cursorcolumn` |
+| Cursor guides                | `cursorline`, `cursorlineopt=screenline`; `cursorcolumn` off |
 | Wrapping                     | Disabled (`wrap = false`)                           |
 | Scroll offset                | `3` lines                                           |
 | Search                       | `ignorecase`, `smartcase`, no persistent highlight  |
 | Substitution preview         | `inccommand = split`                                |
-| Folding                      | Treesitter `foldexpr` for C/C++/CMake/GLSL/Lua, `indent` elsewhere; everything starts unfolded |
+| Folding                      | Treesitter `foldexpr` for C/C++/CMake/GLSL/Lua/Python, `indent` elsewhere; everything starts unfolded |
 | Indentation                  | `autoindent`, `copyindent`, `breakindent`           |
 | Tabs / indents               | `tabstop = 2`, `shiftwidth = 2`                     |
 | Spell check                  | `en_us`, prose filetypes only (markdown, text, gitcommit, help) |
@@ -124,6 +124,14 @@ Source: `lua/config/keymaps.lua`
 | `n,v` | `<Down>` | Move down by screen line                            | Uses `gj`                      |
 | `i`   | `<Up>`   | Move up by screen line                              | Uses `<C-o>gk`                 |
 | `i`   | `<Down>` | Move down by screen line                            | Uses `<C-o>gj`                 |
+| `n`   | `<A-j>`  | Move the current line down                          | Re-indents with `==`           |
+| `n`   | `<A-k>`  | Move the current line up                            | Re-indents with `==`           |
+| `i`   | `<A-j>`  | Move the current line down                          | Returns to insert with `gi`    |
+| `i`   | `<A-k>`  | Move the current line up                            | Returns to insert with `gi`    |
+| `v`   | `<A-j>`  | Move the selected block down                        | Keeps the selection, re-indents |
+| `v`   | `<A-k>`  | Move the selected block up                          | Keeps the selection, re-indents |
+| `n,x` | `<A-h>`  | Move the line or block left                         | From `mini.move`               |
+| `n,x` | `<A-l>`  | Move the line or block right                        | From `mini.move`               |
 | `n`   | `O`      | Add empty line above without staying in insert mode | Overrides default `O` behavior |
 | `n`   | `o`      | Add empty line below without staying in insert mode | Overrides default `o` behavior |
 | `n,v` | `x`      | Delete without yanking to default register          | Uses black-hole register       |
@@ -131,6 +139,59 @@ Source: `lua/config/keymaps.lua`
 | `n,x` | `g<C-g>` | Disabled                                            | Prevents built-in cursor info popup |
 | `n`   | `<leader>ui` | Show cursor info                                | Uses `vim.show_pos()`          |
 | `n`   | `<leader>sk` | Toggle screenkey                                  | Shows or hides keystroke overlay |
+
+To move a block, select it with `V` first; `<A-j>`/`<A-k>` keep the selection
+(`gv=gv`) so the keys can be held down, and re-indent the block where it lands.
+For a longer jump there is `:m +5` / `:m -3` in normal mode, or `:'<,'>m '>+5`
+on a selection.
+
+`mini.move` binds all four directions itself, but it is set up while
+`config/lazy.lua` runs, and `keymaps.lua` is read after that -- so `<A-j>` and
+`<A-k>` are the `:m` mappings above, and only `<A-h>`/`<A-l>` are still
+`mini.move`'s.
+
+### Multiple Cursors
+
+`<C-d>` works the way it does in VS Code and Sublime Text: the first press
+selects the word under the cursor, and every press after that adds a cursor at
+the next occurrence. Type once and the change lands in all of them. `<Esc>`
+collapses back to a single cursor.
+
+| Mode  | Key             | Action                            | Note                                  |
+| ----- | --------------- | --------------------------------- | ------------------------------------- |
+| `n`   | `<C-d>`         | Select the word under the cursor  | Replaces the built-in half-page scroll |
+| `x`   | `<C-d>`         | Add a cursor at the next match    | Repeat to keep adding                 |
+| `n,x` | `<C-S-d>`       | Skip this match, take the next    | GUI only                              |
+| `n,x` | `<C-S-l>`       | Add a cursor at every match       | GUI only                              |
+| `n,x` | `<C-M-Up>`      | Add a cursor on the line above    | GUI only                              |
+| `n,x` | `<C-M-Down>`    | Add a cursor on the line below    | GUI only                              |
+| `n`   | `<M-LeftMouse>` | Add or remove a cursor at the pointer | Ctrl+click is go-to-definition    |
+| `n,x` | `<leader>md`    | Add a cursor at the next match    |                                       |
+| `n,x` | `<leader>mD`    | Add a cursor at the previous match |                                      |
+| `n,x` | `<leader>ms`    | Skip to the next match            |                                       |
+| `n,x` | `<leader>mS`    | Skip to the previous match        |                                       |
+| `n,x` | `<leader>ma`    | Add a cursor at every match       |                                       |
+| `n,x` | `<leader>mj`    | Add a cursor on the line below    |                                       |
+| `n,x` | `<leader>mk`    | Add a cursor on the line above    |                                       |
+| `n,x` | `<leader>mt`    | Disable or re-enable the cursors  | Only the main cursor keeps moving     |
+| `n`   | `<leader>mr`    | Restore cursors cleared by mistake |                                      |
+
+These only exist while more than one cursor is alive:
+
+| Mode  | Key            | Action                        |
+| ----- | -------------- | ----------------------------- |
+| `n`   | `<Esc>`        | Collapse back to one cursor   |
+| `n,x` | `<C-Left>`     | Make the previous cursor the main one |
+| `n,x` | `<C-Right>`    | Make the next cursor the main one |
+| `n,x` | `<leader>mx`   | Delete the main cursor        |
+
+`<C-S-d>`, `<C-S-l>` and `<C-M-Up>`/`<C-M-Down>` only reach Neovim from a GUI
+such as Neovide, or from a terminal that speaks the kitty keyboard protocol.
+The `<leader>m` mappings do the same things everywhere.
+
+Losing `<C-d>` costs the built-in half-page scroll down; `<C-f>`/`<C-b>` page
+and `<C-e>`/`<C-y>` scroll by line. The dashboard's own `<C-d>` is buffer-local
+and still forgets the recent file under the cursor.
 
 ### Buffers
 
@@ -231,6 +292,36 @@ Only useful when an LSP server is attached to the current buffer.
 | `n`  | `<leader>lS` | FZF workspace symbols    |
 | `n`  | `<leader>lx` | FZF document diagnostics |
 | `n`  | `<leader>lq` | FZF quickfix list        |
+
+### C and C++ Functions
+
+Treesitter, not LSP: these work in a header `clangd` has never opened.
+
+| Mode | Key          | Command            | Action                                        |
+| ---- | ------------ | ------------------ | --------------------------------------------- |
+| `n`  | `<leader>lo` | `:CppImplement`    | Write the definition for the declaration under the cursor |
+| `x`  | `<leader>lo` | `:CppImplement`    | Same, for every declaration in the selection  |
+| `n`  | `<leader>lO` | `:CppImplementAll` | Write every definition the class under the cursor is missing |
+| `n`  | `<leader>le` | `:CppSignature`    | Edit the signature here and apply it on the other side |
+
+The generated definition goes into the matching source file (`clangd`'s own
+source/header pairing when it is attached, an `include/` <-> `src/` guess
+otherwise), qualified with its namespaces and class, without `virtual`,
+`explicit`, `override` or default arguments, and the cursor lands inside the
+new body. If there is no source file yet, one is created next to the header
+with the right `#include`. Templates are defined in the header, after the
+class, because that is where they have to live. Pure virtual, `= delete`,
+`= default` and already-defined functions are skipped and reported.
+
+`<leader>le` pre-fills the prompt with the current signature; what you type is
+written back verbatim here, and the declaration or definition on the other side
+is rewritten to match -- keeping its own `virtual`/`static`/`inline`,
+`override` and `Class::` qualifier, and taking the new return type, name,
+parameters and `const`/`noexcept`. The body is not touched. When the other file
+is not open, it is written straight to disk without running format-on-save.
+
+`{` placement follows whatever the target file already does; set
+`vim.g.cpp_brace_style` to `"attach"` or `"next_line"` to force it.
 
 ### FZF
 
@@ -563,9 +654,13 @@ Configured in `lua/plugins/mini.lua`.
 - `screenkey.nvim` is off by default; use `<leader>sk` to toggle it when needed.
 - GLSL-related extensions like `.vert`, `.frag`, `.geom`, `.comp`, `.tesc`, `.tese`, `.rgen`, `.mesh`, and `.task` are detected as `glsl`.
 - C, C++, GLSL, and CMake buffers use 2-space indentation. GLSL uses `//` comments.
+- Lua and Python buffers use 4-space indentation, matching `stylua` and PEP 8 so a save does not re-indent what you typed. Python keeps Neovim's own `indentexpr` rather than the Treesitter one, which does not handle `elif`/`else` dedents.
+- `<leader>lo` / `<leader>lO` / `<leader>le` generate definitions and change signatures from the Treesitter tree, so they do not wait for `clangd`.
 - `clangd` is configured for single-file C/C++ and reads `compile_commands.json` after CMake generate (`<leader>cc` copies it to the project root on Windows).
-- Language servers: `clangd` (C/C++), `neocmake` (CMake), `glsl_analyzer` (shaders), `lua_ls` (Lua). All are installed through `mason.nvim`.
-- Formatting on save: `clang-format` for C/C++ and GLSL (GLSL is passed `--assume-filename=shader.c` so clang-format knows the language), `stylua` for Lua, `cmake-format` for CMake. `:FormatToggle` turns it off globally, `:FormatToggle!` for the current buffer only.
+- Language servers: `clangd` (C/C++), `neocmake` (CMake), `glsl_analyzer` (shaders), `lua_ls` (Lua), `basedpyright` + `ruff` (Python). All are installed through `mason.nvim`.
+- Python is served by two servers at once: `basedpyright` for types/hover/goto (import sorting disabled) and `ruff` for lint and fixes (hover disabled), so `K` and `<leader>w` never do the same job twice.
+- Lua completion and `vim.*` types come from `lazydev.nvim`, which loads a library path only when a buffer mentions it; `lua_ls`'s own formatter is off so `stylua` owns Lua layout.
+- Formatting on save: `clang-format` for C/C++ and GLSL (GLSL is passed `--assume-filename=shader.c` so clang-format knows the language), `stylua` for Lua, `cmake-format` for CMake, `ruff` for Python (`ruff_fix` -> `ruff_organize_imports` -> `ruff_format`). `:FormatToggle` turns it off globally, `:FormatToggle!` for the current buffer only.
 - Treesitter parsers are compiled by the `tree-sitter` CLI, installed by `mason-tool-installer`. Run `:TSEnsure` if a parser is missing.
 - `<leader>pp` opens the recent-project picker; the dashboard `p` shortcut does the same thing.
 - Right-click works everywhere; the menu changes to a file-manager menu inside `neo-tree`.

@@ -5,7 +5,7 @@ vim.opt.fileformat = "unix"
 -- Cursor visibility
 o.cursorline = true
 o.cursorlineopt = "screenline"
-o.cursorcolumn = true
+o.cursorcolumn = false
 -- Dynamic line numbers
 o.number = true
 local number_toggle_group = a.nvim_create_augroup("DynamicLineNumbers", { clear = true })
@@ -155,6 +155,20 @@ a.nvim_create_autocmd("FileType", {
         if vim.bo.filetype == "glsl" then
             vim.bo.commentstring = "// %s"
         end
+    end,
+})
+
+-- Lua and Python both format to 4 spaces (stylua's default indent, PEP 8), so
+-- typing at the global 2-space width would be undone by the next save.
+local four_space_group = a.nvim_create_augroup("FourSpaceIndentation", { clear = true })
+a.nvim_create_autocmd("FileType", {
+    group = four_space_group,
+    pattern = { "lua", "python" },
+    callback = function()
+        vim.bo.tabstop = 4
+        vim.bo.shiftwidth = 4
+        vim.bo.softtabstop = 4
+        vim.bo.expandtab = true
     end,
 })
 

@@ -1,6 +1,7 @@
 return {
     require("plugins.colorscheme"),
     require("plugins.mini"),
+    require("plugins.multicursor"),
     require("plugins.blink"),
     require("plugins.bufferline"),
     require("plugins.lualine"),
@@ -13,6 +14,7 @@ return {
     require("plugins.mason"),
     require("plugins.mason_tool_installer"),
     require("plugins.mason_lspconfig"),
+    require("plugins.lazydev"),
     require("plugins.lspconfig"),
     require("plugins.conform"),
     require("plugins.cmake"),

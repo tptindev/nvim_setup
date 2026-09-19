@@ -15,11 +15,27 @@ return {
             ["clickable-panel"] = true,
         }
 
+        ---Windows that have to keep the buffer they already hold, even when the
+        ---click came from one of them. The dashboard is deliberately not in
+        ---here: it is the placeholder sitting in the editor area, and replacing
+        ---it with the file is exactly what a tab click should do.
+        ---@param win integer
+        ---@return boolean
+        local function holds_its_buffer(win)
+            local buf = vim.api.nvim_win_get_buf(win)
+            return vim.bo[buf].filetype == "neo-tree" or vim.bo[buf].buftype == "terminal"
+        end
+
         ---A window the file can be opened in: never a float, never the sidebar.
+        ---The current window used to be taken as-is whenever it was not a float,
+        ---which loaded the file straight into neo-tree whenever the sidebar had
+        ---focus. neo-tree does eject it again from its own `BufEnter` handler,
+        ---but that is a visible round trip through a code path this config
+        ---should not be leaning on.
         ---@return integer|nil
         local function editor_window()
             local current = vim.api.nvim_get_current_win()
-            if vim.api.nvim_win_get_config(current).relative == "" then
+            if vim.api.nvim_win_get_config(current).relative == "" and not holds_its_buffer(current) then
                 return current
             end
 
@@ -49,7 +65,10 @@ return {
                 left_mouse_command = function(bufnr)
                     local win = editor_window()
                     if not win then
-                        return
+                        -- Only the sidebar and floats are open. Make a window
+                        -- for the file instead of dropping the click.
+                        vim.cmd("botright vsplit")
+                        win = vim.api.nvim_get_current_win()
                     end
 
                     vim.api.nvim_set_current_win(win)

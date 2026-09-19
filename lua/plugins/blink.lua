@@ -21,7 +21,17 @@ return {
             enabled = true,
         },
         sources = {
-            default = { "lsp", "path", "snippets", "buffer" },
+            -- lazydev only yields completions in Lua buffers; the high
+            -- score_offset keeps its `require("...")` paths above the LSP's own
+            -- (worse) guesses instead of below them.
+            default = { "lsp", "path", "snippets", "buffer", "lazydev" },
+            providers = {
+                lazydev = {
+                    name = "LazyDev",
+                    module = "lazydev.integrations.blink",
+                    score_offset = 100,
+                },
+            },
         },
         fuzzy = {
             implementation = "prefer_rust_with_warning",

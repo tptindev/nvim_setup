@@ -1,6 +1,6 @@
 # Lotus Neovim Config
 
-Personal Neovim configuration focused on a fast editing workflow, practical defaults, and a solid setup for C/C++, CMake, Lua, and GLSL work.
+Personal Neovim configuration focused on a fast editing workflow, practical defaults, and a solid setup for C/C++, CMake, Lua, Python, and GLSL work.
 
 This repo uses `lazy.nvim` for plugin management and keeps the configuration split into small Lua modules under `lua/config` and `lua/plugins`.
 
@@ -14,6 +14,7 @@ This repo uses `lazy.nvim` for plugin management and keeps the configuration spl
 - `nvim-treesitter` for syntax awareness
 - `toggleterm.nvim` for a floating terminal
 - `cmake-tools.nvim` shortcuts for configure, build, run, and target selection
+- `multicursor.nvim` for VS Code style multiple cursors on `<C-d>`
 - `which-key.nvim` for discoverable leader mappings
 - `dashboard-nvim` with shortcuts for files, projects, sessions, settings, and recent work
 - A built-in project manager (`lua/config/projects.lua`): root detection, a recent-project list, and one session per project
@@ -45,7 +46,7 @@ Some notable editor defaults in this repo:
 - Search is case-insensitive unless uppercase is used
 - Clipboard uses `unnamedplus`
 - Spell checking is limited to prose filetypes (markdown, text, gitcommit, help)
-- Folding uses Treesitter for C/C++/CMake/GLSL/Lua and starts fully unfolded
+- Folding uses Treesitter for C/C++/CMake/GLSL/Lua/Python and starts fully unfolded
 - Neovide uses `JetBrainsMono NFM` with zoom, fullscreen and IME support (`lua/config/neovide.lua`)
 - Common GLSL-related extensions are mapped to the `glsl` filetype
 - The mouse is enabled in every mode, with a context-aware right-click menu
@@ -59,11 +60,21 @@ The current LSP setup ensures these servers are installed and enabled:
 - `clangd` — C and C++
 - `neocmake` — CMake
 - `glsl_analyzer` — GLSL shaders
-- `lua_ls` — Lua
+- `lua_ls` — Lua, with `lazydev.nvim` supplying Neovim and plugin type definitions
+- `basedpyright` — Python types, hover, and navigation
+- `ruff` — Python linting and fixes (it yields hover to `basedpyright`)
 
 Formatting is handled by `conform.nvim` on save: `clang-format` for C/C++ and
-GLSL, `stylua` for Lua, and `cmake-format` for CMake. Use `:FormatToggle` to
-turn format-on-save off.
+GLSL, `stylua` for Lua, `cmake-format` for CMake, and `ruff` for Python
+(fixes, then import sorting, then layout). Use `:FormatToggle` to turn
+format-on-save off.
+
+C and C++ get two refactors the toolchain does not provide: `<leader>lo`
+writes the definition for the declaration under the cursor into the matching
+source file (`<leader>lO` for every one the class is missing), and `<leader>le`
+edits a signature and applies the same change to the declaration or definition
+on the other side. Both read the Treesitter tree, so they work without a
+language server.
 
 `mason-tool-installer` also installs the `tree-sitter` CLI, which
 `nvim-treesitter` needs to compile parsers. If a parser is missing, run
@@ -74,6 +85,7 @@ This makes the repo especially suitable for:
 - C and C++
 - CMake-based projects
 - Lua
+- Python
 - GLSL shaders
 
 ## Keymaps
@@ -87,7 +99,9 @@ Useful examples:
 - `<leader>e` to toggle the file explorer
 - `<leader>t` to open the floating terminal
 - `<leader>cc` / `<leader>cb` / `<leader>cr` for CMake configure, build, and run
+- `<leader>lo` to write the definition for a C/C++ declaration, `<leader>le` to change its signature on both sides
 - `<leader>pp` to switch projects, `<leader>pr` to `cd` to the current project root
+- `<C-d>` to select the word under the cursor, then again for each next occurrence
 - `<leader>?` to show buffer-local mappings with `which-key`
 
 For a fuller list, see [docs/cheatsheet.md](docs/cheatsheet.md).
@@ -103,6 +117,7 @@ For a fuller list, see [docs/cheatsheet.md](docs/cheatsheet.md).
 `-- lua/
     |-- config/
     |   |-- buffers.lua
+    |   |-- cpp.lua
     |   |-- keymaps.lua
     |   |-- lazy.lua
     |   |-- options.lua

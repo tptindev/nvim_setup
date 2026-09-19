@@ -13,6 +13,7 @@ return {
             "glsl",
             "lua",
             "luadoc",
+            "python",
             "json",
             "query",
             "vim",
@@ -25,6 +26,9 @@ return {
             "gitcommit",
         }
 
+        -- Python is deliberately absent: Neovim ships a Python ftplugin whose
+        -- indentexpr handles hanging brackets and `elif`/`else` dedents, which
+        -- the Treesitter indent module does not.
         local indent_filetypes = {
             c = true,
             cpp = true,
@@ -39,6 +43,7 @@ return {
             cmake = true,
             glsl = true,
             lua = true,
+            python = true,
         }
 
         local ts = require("nvim-treesitter")

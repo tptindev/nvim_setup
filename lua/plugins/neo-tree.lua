@@ -54,6 +54,23 @@ return {
         },
     },
     config = function(_, opts)
+        -- A file buffer that still lands in the tree window is ejected by
+        -- neo-tree itself (`setup/init.lua`, `buffer_enter_event`): it runs
+        -- `b#`, deletes the buffer, then re-opens the file in a real window
+        -- through `utils.open_file`. That path restores the tree width with
+        -- `_compat.nvim_win_set_width`, which calls `vim.api.nvim_win_resize`
+        -- as soon as `has("nvim-0.13")` is true -- and this build reports 0.13
+        -- while the function does not exist yet (v0.13.0-dev-29), so the eject
+        -- throws halfway and can leave the file deleted and never reopened.
+        -- Both shims fail the same way, deterministically. `utils.lua` holds a
+        -- reference to this same table, so replacing the fields is enough
+        -- whatever order the modules are required in.
+        if vim.api.nvim_win_resize == nil then
+            local compat = require("neo-tree.utils._compat")
+            compat.nvim_win_set_width = vim.api.nvim_win_set_width
+            compat.nvim_win_set_height = vim.api.nvim_win_set_height
+        end
+
         require("neo-tree").setup(opts)
 
         vim.api.nvim_create_autocmd("VimEnter", {
